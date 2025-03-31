@@ -1,0 +1,11 @@
+Mail Owner Name,Owner First Name,Owner Last Name,Owner Occupied,Tax Billing Address,Tax Billing City,Tax Billing Zip,Tax Billing City & State,Exemption(s),MLS Sale Date,Subdivision,Standardized House Number,Street Name,House Unit Number,Zip Code,State,MLS Listing Number,MLS Sale/Close Price,Last Mkt Rec Date
+John Smith,John,Smith,Y,123 Main St,Houston,77001,Houston TX,Homestead,1/1/2022,Oak Forest,123,Main St,,77001,TX,12345,$300000,3/1/2022
+Maria Rodriguez,Maria,Rodriguez,Y,456 Elm St,Houston,77002,Houston TX,Homestead,2/2/2022,Maple Heights,456,Elm St,,77002,TX,12346,$320000,3/2/2022
+Investment LLC,,,N,789 Oak St,Austin,78701,Austin TX,,2/15/2022,Downtown,789,Oak St,,78701,TX,12347,$450000,3/15/2022
+Rental Properties Inc,,,N,101 Pine St,Dallas,75201,Dallas TX,,3/1/2022,Uptown,101,Pine St,,75201,TX,12348,$275000,4/1/2022
+David Williams,David,Williams,Y,222 Cedar Ln,Houston,77003,Houston TX,Homestead,3/15/2022,Riverside,222,Cedar Ln,,77003,TX,12349,$310000,4/15/2022
+Jane Doe,Jane,Doe,,333 Birch Ave,Houston,77004,Houston TX,,4/1/2022,Greenway,333,Birch Ave,,77004,TX,12350,$295000,5/1/2022
+Michael Brown,Michael,Brown,Y,444 Spruce Blvd,Houston,77005,Houston TX,Homestead,4/15/2022,Museum District,444,Spruce Blvd,,77005,TX,12351,$390000,5/15/2022
+Texas Properties LLC,,,N,555 Fir Dr,San Antonio,78205,San Antonio TX,,5/1/2022,River Walk,555,Fir Dr,,78205,TX,12352,$400000,6/1/2022
+Sarah Johnson,Sarah,Johnson,,666 Redwood Ct,Houston,77006,Houston TX,,5/15/2022,Montrose,666,Redwood Ct,,77006,TX,12353,$355000,6/15/2022
+Robert Wilson,Robert,Wilson,Y,777 Aspen Way,Houston,77007,Houston TX,Homestead,6/1/2022,Heights,777,Aspen Way,,77007,TX,12354,$420000,7/1/2022 

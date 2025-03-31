@@ -1,0 +1,7 @@
+{
+  "name": "Basic Real Estate Letter",
+  "description": "A simple letter template for reaching out to property owners",
+  "content": "Date: {current_date}\n\nDear {first_name} {last_name},\n\nI hope this letter finds you well. I'm writing to you regarding your property at {address}, {city}, {state} {zip}.\n\nI would like to discuss some opportunities that might be of interest to you as a property owner. Real estate values in your area have been changing, and I believe there might be potential benefits worth exploring.\n\n{current_owner}{current_renter}Whether you're considering selling, refinancing, or simply want to learn more about the current market conditions affecting your property, I'd be happy to provide you with information and assistance.\n\nPlease feel free to contact me at your convenience to discuss this further.\n\nSincerely,\n\nYour Name\nReal Estate Professional\nPhone: (555) 123-4567\nEmail: your.email@example.com",
+  "created": "2025-03-29T17:04:34.001987",
+  "updated": "2025-03-29T17:04:34.001987"
+}

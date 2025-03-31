@@ -1,0 +1,11 @@
+Address,City,State,Zip,Phone,Price,Status
+123 Main St,San Francisco,CA,94105,415-555-1234,$850000,Active
+456 Oak Ave,New York,NY,10001,212-555-6789,$1,250,000,Pending
+789 Pine Rd,Chicago,IL,60601,773-555-4321,$725500,Active
+321 Elm St,Boston,MA,2115,617-555-8765,$925,000,Sold
+654 Maple Ln,Seattle,WA,98101,206-555-9876,$1150500,Active
+987 Cherry Blvd,Austin,TX,78701,512-555-2468,$550000,Pending
+246 Birch Dr,Miami,FL,33101,305-555-1357,$875,500,Sold
+135 Cedar Ct,Denver,CO,80202,303-555-8642,$625000,Active
+864 Spruce St,Portland,OR,97201,503-555-7531,$720,000,Pending
+579 Willow Ave,Atlanta,GA,30301,404-555-9153,$495500,Active 

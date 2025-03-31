@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSV File Processor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #3b7dd8;
+      --primary-hover: #2a5ea1;
+      --sidebar-width: 250px;
+      --sidebar-color: #1e2c3a;
+      --success-color: #52c41a;
+      --danger-color: #ff4d4f;
+      --warning-color: #faad14;
+      --info-color: #1890ff;
+      --gray-100: #f8f9fa;
+      --gray-200: #e9ecef;
+      --gray-300: #dee2e6;
+      --gray-400: #ced4da;
+      --gray-500: #adb5bd;
+      --gray-600: #6c757d;
+      --gray-700: #495057;
+      --gray-800: #343a40;
+      --gray-900: #212529;
+      --border-radius: 8px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 20px rgba(0,0,0,0.1);
+      --transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+      background-color: #f8f9fa;
+      color: var(--gray-800);
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--sidebar-color);
+      color: white;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      overflow-y: auto;
+      z-index: 10;
+      box-shadow: var(--shadow-md);
+      transition: var(--transition);
+    }
+    
+    .sidebar-header {
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .sidebar-logo {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: white;
+      text-decoration: none;
+    }
+    
+    .sidebar-toggle {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: none;
+    }
+    
+    .nav-menu {
+      list-style: none;
+      padding: 20px 0;
+    }
+    
+    .nav-item {
+      margin-bottom: 5px;
+    }
+    
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      color: var(--gray-400);
+      text-decoration: none;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    
+    .nav-link:hover {
+      background-color: rgba(255,255,255,0.1);
+      color: white;
+    }
+    
+    .nav-link.active {
+      background-color: rgba(255,255,255,0.15);
+      color: white;
+      border-left: 3px solid var(--primary-color);
+    }
+    
+    .nav-icon {
+      margin-right: 10px;
+      width: 20px;
+      text-align: center;
+    }
+    
+    /* Main content */
+    .main-content {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      padding: 20px;
+      transition: var(--transition);
+    }
+    
+    .header {
+      background-color: white;
+      padding: 20px;
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .content-wrapper {
+      border-radius: var(--border-radius);
+    }
+    
+    .section {
+      display: none;
+      background-color: white;
+      border-radius: var(--border-radius);
+      padding: 25px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 20px;
+    }
+    
+    .section.active {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    h1 {
+      margin-bottom: 0.5rem;
+      color: var(--gray-800);
+      font-size: 1.8rem;
+    }
+    
+    h2 {
+      color: var(--gray-800);
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+    
+    h3 {
+      color: var(--gray-800);
+      margin-bottom: 0.75rem;
+      font-size: 1.25rem;
+    }
+    
+    p {
+      color: var(--gray-700);
+      margin-bottom: 1rem;
+    }
+    
+    /* Form elements */
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--gray-700);
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--border-radius);
+      font-family: inherit;
+      font-size: 14px;
+      transition: var(--transition);
+    }
+    
+    input:focus,
+    select:focus {
+      border-color: var(--primary-color);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 125, 216, 0.2);
+    }
+    
+    button {
+      padding: 0.75rem 1rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+    
+    button:hover {
+      background-color: var(--primary-hover);
+    }
+    
+    button:disabled {
+      background-color: var(--gray-400);
+      cursor: not-allowed;
+    }
+    
+    /* Result and status */
+    .result {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background-color: #e6f7ff;
+      border-radius: var(--border-radius);
+      border-left: 4px solid var(--info-color);
+    }
+    
+    .error {
+      background-color: #fff1f0;
+      border-left: 4px solid var(--danger-color);
+    }
+    
+    a.download {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background-color: var(--success-color);
+      color: white;
+      text-decoration: none;
+      padding: 0.75rem 1rem;
+      border-radius: var(--border-radius);
+      margin-top: 1rem;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+    
+    a.download:hover {
+      background-color: #489c18;
+    }
+
+    .health-check {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f0f9ff;
+      border-radius: var(--border-radius);
+      border: 1px solid var(--gray-200);
+    }
+    
+    /* Debug log */
+    .debug-log {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #2c3e50;
+      border-radius: var(--border-radius);
+      height: 300px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 13px;
+      color: #f8f9fa;
+    }
+    
+    .log-entry {
+      margin: 0;
+      padding: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .log-info {
+      color: #63b3ed;
+    }
+    
+    .log-error {
+      color: #fc8181;
+    }
+    
+    .log-warning {
+      color: #f6ad55;
+    }
+    
+    .log-success {
+      color: #68d391;
+    }
+    
+    /* Preview section */
+    .preview-container {
+      margin-top: 20px;
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    
+    .preview-controls {
+      display: flex;
+      justify-content: space-between;
+      background-color: var(--gray-100);
+      padding: 15px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .filter-status {
+      background-color: #e6f7ff;
+      padding: 10px 15px;
+      border-radius: var(--border-radius);
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 4px solid var(--info-color);
+    }
+    
+    .filter-status.owner_occupied {
+      background-color: #f6ffed;
+      border-left-color: var(--success-color);
+    }
+    
+    .filter-status.renter {
+      background-color: #fff7e6;
+      border-left-color: var(--warning-color);
+    }
+    
+    .filter-status.investor {
+      background-color: #f9f0ff;
+      border-left-color: #722ed1;
+    }
+    
+    .filter-status-icon {
+      font-size: 18px;
+      margin-right: 10px;
+    }
+    
+    .refresh-preview {
+      background-color: var(--info-color);
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .preview-table-container {
+      overflow-x: auto;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    
+    th {
+      background-color: var(--gray-100);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 12px;
+      text-align: left;
+      border: 1px solid var(--gray-300);
+      font-weight: 600;
+    }
+    
+    td {
+      padding: 10px 12px;
+      border: 1px solid var(--gray-300);
+      white-space: nowrap;
+    }
+    
+    tr:nth-child(even) {
+      background-color: var(--gray-100);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 0;
+        transform: translateX(-250px);
+      }
+      
+      .sidebar.active {
+        width: var(--sidebar-width);
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+      
+      .sidebar-toggle {
+        display: block;
+      }
+      
+      .mobile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background-color: white;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        box-shadow: var(--shadow-sm);
+      }
+      
+      .mobile-toggle {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--gray-700);
+      }
+    }
+    
+    /* Dark mode */
+    .dark-mode {
+      --primary-color: #5a8dee;
+      --primary-hover: #7aa5f3;
+      --sidebar-color: #151e29;
+      --gray-100: #1a2130;
+      --gray-200: #232f3e;
+      --gray-300: #2c3a4a;
+      --gray-700: #b1b7c5;
+      --gray-800: #d3d6df;
+      --gray-900: #e9ebf1;
+    }
+    
+    .dark-mode body {
+      background-color: #0e1623;
+      color: var(--gray-800);
+    }
+    
+    .dark-mode .header, 
+    .dark-mode .section,
+    .dark-mode .preview-container {
+      background-color: #1a2130;
+      border-color: #2c3a4a;
+    }
+    
+    .dark-mode input,
+    .dark-mode select {
+      background-color: #232f3e;
+      border-color: #2c3a4a;
+      color: #d3d6df;
+    }
+    
+    .dark-mode input:focus,
+    .dark-mode select:focus {
+      border-color: var(--primary-color);
+    }
+    
+    .dark-mode .preview-controls,
+    .dark-mode th {
+      background-color: #232f3e;
+    }
+    
+    .dark-mode td {
+      border-color: #2c3a4a;
+    }
+    
+    .dark-mode tr:nth-child(even) {
+      background-color: #1d2535;
+    }
+    
+    .dark-mode .mobile-header {
+      background-color: #1a2130;
+    }
+    
+    .dark-mode .mobile-toggle {
+      color: #d3d6df;
+    }
+    
+    .theme-toggle {
+      margin-top: auto;
+      padding: 10px 20px;
+      background-color: transparent;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--gray-400);
+      cursor: pointer;
+    }
+    
+    .theme-toggle:hover {
+      background-color: rgba(255,255,255,0.05);
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: var(--gray-200);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--gray-400);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--gray-500);
+    }
+    
+    .dark-mode ::-webkit-scrollbar-track {
+      background: var(--gray-200);
+    }
+    
+    .dark-mode ::-webkit-scrollbar-thumb {
+      background: var(--gray-400);
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <a href="#" class="sidebar-logo">CSV Processor</a>
+      <button class="sidebar-toggle" id="sidebarClose">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <ul class="nav-menu">
+      <li class="nav-item">
+        <div class="nav-link active" data-tab="upload">
+          <span class="nav-icon"><i class="fas fa-upload"></i></span>
+          File Upload
+        </div>
+      </li>
+      <li class="nav-item">
+        <div class="nav-link" data-tab="preview">
+          <span class="nav-icon"><i class="fas fa-table"></i></span>
+          Data Preview
+        </div>
+      </li>
+      <li class="nav-item">
+        <div class="nav-link" data-tab="logs">
+          <span class="nav-icon"><i class="fas fa-terminal"></i></span>
+          Debug Logs
+        </div>
+      </li>
+      <li class="nav-item">
+        <a href="letters.html" class="nav-link">
+          <span class="nav-icon"><i class="fas fa-envelope"></i></span>
+          Letters
+        </a>
+      </li>
+    </ul>
+    <div class="theme-toggle" id="themeToggle">
+      <span>Toggle Dark Mode</span>
+      <span class="nav-icon"><i class="fas fa-moon"></i></span>
+    </div>
+  </nav>
+  
+  <!-- Mobile header for small screens -->
+  <div class="mobile-header" id="mobileHeader" style="display: none;">
+    <button class="mobile-toggle" id="sidebarToggle">
+      <i class="fas fa-bars"></i>
+    </button>
+    <h1>CSV Processor</h1>
+  </div>
+  
+  <!-- Main content -->
+  <main class="main-content">
+    <div class="header">
+      <h1>CSV File Processing Tool</h1>
+      <p>Upload and process CSV files with real estate data</p>
+    </div>
+    
+    <div class="content-wrapper">
+      <!-- Upload Section -->
+      <section class="section active" id="upload-tab">
+        <div class="health-check">
+          <h3>API Health Check</h3>
+          <button id="healthBtn"><i class="fas fa-heartbeat"></i> Check API Status</button>
+          <div id="healthResult" style="margin-top: 10px;"></div>
+        </div>
+        
+        <h2>Upload CSV File</h2>
+        <form id="uploadForm">
+          <div class="form-group">
+            <label for="csvFile">Select CSV File:</label>
+            <input type="file" id="csvFile" accept=".csv" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="delimiter">CSV Delimiter:</label>
+            <select id="delimiter">
+              <option value=",">Comma (,)</option>
+              <option value=";">Semicolon (;)</option>
+              <option value="\t">Tab</option>
+              <option value="|">Pipe (|)</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="filterType">Data Filter:</label>
+            <select id="filterType">
+              <option value="all">All Records</option>
+              <option value="owner_occupied">Owner Occupied Only</option>
+              <option value="renter">Renter Properties</option>
+              <option value="investor">Investor Properties</option>
+            </select>
+          </div>
+          
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px;">
+            <button type="button" id="previewBtn"><i class="fas fa-eye"></i> Preview Data</button>
+            <button type="button" id="processBtn"><i class="fas fa-cogs"></i> Process Data</button>
+            <button type="button" id="downloadBtn"><i class="fas fa-file-download"></i> Download Processed</button>
+            <button type="button" id="excelBtn"><i class="fas fa-file-excel"></i> Excel Format</button>
+          </div>
+          
+          <div id="uploadResult" class="result" style="display: none;"></div>
+        </form>
+      </section>
+      
+      <!-- Preview Section -->
+      <section class="section" id="preview-tab">
+        <h2>Data Preview</h2>
+        <div class="preview-container">
+          <div class="preview-controls">
+            <div>
+              <span id="previewCount">0 records</span>
+            </div>
+            <button class="refresh-preview" id="refreshPreviewBtn">
+              <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+          </div>
+          
+          <div class="filter-status" id="filterStatus">
+            <div>
+              <span class="filter-status-icon">
+                <i class="fas fa-filter"></i>
+              </span>
+              <span id="filterStatusText">All records</span>
+            </div>
+            <div id="recordCount">0 records</div>
+          </div>
+          
+          <div class="preview-table-container">
+            <table id="previewTable">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Logs Section -->
+      <section class="section" id="logs-tab">
+        <h2>Debug Logs</h2>
+        <div class="debug-log" id="debugLog"></div>
+        <div style="margin-top: 15px;">
+          <button id="clearLogsBtn"><i class="fas fa-broom"></i> Clear Logs</button>
+        </div>
+      </section>
+    </div>
+  </main>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set up tabs
+      setupTabs();
+      
+      // Set up mobile responsiveness
+      setupMobileResponsiveness();
+      
+      // Initialize theme
+      initializeTheme();
+      
+      // Set up event listeners
+      document.getElementById('healthBtn').addEventListener('click', checkHealth);
+      document.getElementById('previewBtn').addEventListener('click', previewCSV);
+      document.getElementById('processBtn').addEventListener('click', processCSV);
+      document.getElementById('downloadBtn').addEventListener('click', downloadProcessedCSV);
+      document.getElementById('excelBtn').addEventListener('click', processExcelStyle);
+      document.getElementById('refreshPreviewBtn').addEventListener('click', refreshPreview);
+      document.getElementById('clearLogsBtn').addEventListener('click', clearLogs);
+      
+      // Initialize log
+      log('Application initialized');
+    });
+    
+    // Set up tabs functionality
+    function setupTabs() {
+      const tabButtons = document.querySelectorAll('.nav-link');
+      const tabContents = document.querySelectorAll('.section');
+      
+      tabButtons.forEach(button => {
+        if (button.getAttribute('href')) return; // Skip actual links
+        
+        button.addEventListener('click', function() {
+          const tabId = this.getAttribute('data-tab');
+          console.log("Tab clicked:", tabId);
+          
+          // Remove active class from all buttons and content
+          tabButtons.forEach(b => b.classList.remove('active'));
+          tabContents.forEach(c => c.classList.remove('active'));
+          
+          // Add active class to clicked button and corresponding content
+          this.classList.add('active');
+          const tabContent = document.getElementById(tabId + '-tab');
+          if (tabContent) {
+            tabContent.classList.add('active');
+            log("Switched to tab: " + tabId);
+          } else {
+            console.error("Tab content not found for:", tabId);
+            log("Error: Tab content not found for " + tabId, 'error');
+          }
+        });
+      });
+      
+      log('Tab initialization complete');
+    }
+    
+    // Mobile responsive functionality
+    function setupMobileResponsiveness() {
+      const sidebar = document.querySelector('.sidebar');
+      const sidebarToggle = document.getElementById('sidebarToggle');
+      const sidebarClose = document.getElementById('sidebarClose');
+      const mobileHeader = document.getElementById('mobileHeader');
+      
+      // Check if mobile view is needed
+      function checkMobileView() {
+        if (window.innerWidth <= 768) {
+          mobileHeader.style.display = 'flex';
+        } else {
+          mobileHeader.style.display = 'none';
+          sidebar.classList.remove('active'); // Reset sidebar when resizing to desktop
+        }
+      }
+      
+      // Toggle sidebar on mobile
+      if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+          sidebar.classList.add('active');
+        });
+      }
+      
+      // Close sidebar on mobile
+      if (sidebarClose) {
+        sidebarClose.addEventListener('click', function() {
+          sidebar.classList.remove('active');
+        });
+      }
+      
+      // Close sidebar when clicking outside
+      document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768 && 
+            sidebar.classList.contains('active') && 
+            !sidebar.contains(e.target) && 
+            e.target !== sidebarToggle) {
+          sidebar.classList.remove('active');
+        }
+      });
+      
+      // Close sidebar when clicking a nav link on mobile
+      document.querySelectorAll('.nav-link').forEach(link => {
+        if (!link.getAttribute('href')) { // Skip actual links
+          link.addEventListener('click', function() {
+            if (window.innerWidth <= 768) {
+              sidebar.classList.remove('active');
+            }
+          });
+        }
+      });
+      
+      // Initialize mobile view
+      checkMobileView();
+      
+      // Update when window is resized
+      window.addEventListener('resize', checkMobileView);
+      
+      log('Mobile responsiveness initialized');
+    }
+    
+    // Initialize the application's theme
+    function initializeTheme() {
+      const themeToggle = document.getElementById('themeToggle');
+      const rootElement = document.documentElement;
+      const moonIcon = '<i class="fas fa-moon"></i>';
+      const sunIcon = '<i class="fas fa-sun"></i>';
+      
+      // Check for stored theme preference
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      // Function to update icon
+      function updateThemeIcon(isDark) {
+        const iconElement = themeToggle.querySelector('.nav-icon');
+        iconElement.innerHTML = isDark ? sunIcon : moonIcon;
+      }
+      
+      // Apply initial theme based on saved preference or system preference
+      if (savedTheme === 'dark' || (!savedTheme && prefersDarkMode)) {
+        rootElement.classList.add('dark-mode');
+        updateThemeIcon(true);
+        log('Applied dark mode theme');
+      } else {
+        rootElement.classList.remove('dark-mode');
+        updateThemeIcon(false);
+        log('Applied light mode theme');
+      }
+      
+      // Toggle theme on click
+      themeToggle.addEventListener('click', function() {
+        const isDarkMode = rootElement.classList.toggle('dark-mode');
+        
+        // Update icon
+        updateThemeIcon(isDarkMode);
+        
+        // Save preference
+        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        
+        log(`Switched to ${isDarkMode ? 'dark' : 'light'} mode`);
+      });
+      
+      log('Theme initialization complete');
+    }
+    
+    // Log function (info, error, warning, success)
+    function log(message, level = 'info') {
+      const debugLog = document.getElementById('debugLog');
+      
+      const logEntry = document.createElement('div');
+      logEntry.className = 'log-entry';
+      
+      const timestamp = new Date().toLocaleTimeString();
+      
+      logEntry.innerHTML = `
+        <span style="color: #a9b3bc; font-weight: 500; margin-right: 10px;">${timestamp}</span>
+        <span class="log-${level}">${message}</span>
+      `;
+      
+      debugLog.appendChild(logEntry);
+      debugLog.scrollTop = debugLog.scrollHeight;
+      
+      console.log(`[${level.toUpperCase()}] ${message}`);
+    }
+    
+    // Clear logs
+    function clearLogs() {
+      document.getElementById('debugLog').innerHTML = '';
+      log('Logs cleared');
+    }
+    
+    // Check API health
+    function checkHealth() {
+      const healthResult = document.getElementById('healthResult');
+      
+      log('Checking API health...');
+      
+      // Show loading
+      healthResult.innerHTML = '<div style="display: flex; align-items: center; gap: 8px;"><i class="fas fa-spinner fa-spin"></i> Checking API status...</div>';
+      
+      fetch('/health')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.status === 'ok') {
+            healthResult.innerHTML = '<div style="color: var(--success-color); display: flex; align-items: center; gap: 8px;"><i class="fas fa-check-circle"></i> API is running properly</div>';
+            log('API health check: OK', 'success');
+          } else {
+            healthResult.innerHTML = '<div style="color: var(--warning-color); display: flex; align-items: center; gap: 8px;"><i class="fas fa-exclamation-triangle"></i> API reported issue</div>';
+            log('API health check: Reported issue', 'warning');
+          }
+        })
+        .catch(error => {
+          healthResult.innerHTML = '<div style="color: var(--danger-color); display: flex; align-items: center; gap: 8px;"><i class="fas fa-times-circle"></i> Cannot connect to API</div>';
+          log(`API health check failed: ${error.message}`, 'error');
+        });
+    }
+    
+    // Preview CSV data
+    function previewCSV() {
+      const fileInput = document.getElementById('csvFile');
+      const delimiterSelect = document.getElementById('delimiter');
+      const filterTypeSelect = document.getElementById('filterType');
+      const uploadResult = document.getElementById('uploadResult');
+      
+      if (!fileInput.files || fileInput.files.length === 0) {
+        uploadResult.innerHTML = 'Please select a CSV file first.';
+        uploadResult.className = 'result error';
+        uploadResult.style.display = 'block';
+        return;
+      }
+      
+      const file = fileInput.files[0];
+      const delimiter = delimiterSelect.value;
+      const filterType = filterTypeSelect.value;
+      
+      log(`Previewing CSV file: ${file.name} with delimiter: ${delimiter} and filter: ${filterType}`);
+      
+      // Read and process the file
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        try {
+          const content = e.target.result;
+          
+          // Handle tab delimiter
+          const actualDelimiter = delimiter === '\\t' ? '\t' : delimiter;
+          
+          // Parse the CSV
+          const rows = parseCSV(content, actualDelimiter);
+          
+          if (rows.length === 0) {
+            throw new Error('No data found in CSV file');
+          }
+          
+          log(`Successfully parsed ${rows.length} rows from CSV`);
+          
+          // Filter rows if needed
+          const filteredRows = applyFilter(rows, filterType);
+          
+          log(`Applied filter "${filterType}", filtered to ${filteredRows.length} rows`);
+          
+          // Update the filter status
+          updateFilterStatus(filterType, filteredRows.length - 1); // -1 for header row
+          
+          // Update preview table
+          updatePreviewTable(filteredRows);
+          
+          // Switch to preview tab
+          document.querySelector('[data-tab="preview"]').click();
+          
+          // Show success message
+          uploadResult.innerHTML = `File preview successful. Found ${filteredRows.length - 1} records after filtering.`;
+          uploadResult.className = 'result';
+          uploadResult.style.display = 'block';
+          
+        } catch (error) {
+          log(`Error previewing CSV: ${error.message}`, 'error');
+          uploadResult.innerHTML = `Error previewing file: ${error.message}`;
+          uploadResult.className = 'result error';
+          uploadResult.style.display = 'block';
+        }
+      };
+      
+      reader.onerror = function() {
+        log('Error reading file', 'error');
+        uploadResult.innerHTML = 'Error reading file';
+        uploadResult.className = 'result error';
+        uploadResult.style.display = 'block';
+      };
+      
+      reader.readAsText(file);
+    }
+    
+    // Process CSV data
+    function processCSV() {
+      const fileInput = document.getElementById('csvFile');
+      const delimiterSelect = document.getElementById('delimiter');
+      const filterTypeSelect = document.getElementById('filterType');
+      const uploadResult = document.getElementById('uploadResult');
+      
+      if (!fileInput.files || fileInput.files.length === 0) {
+        uploadResult.innerHTML = 'Please select a CSV file first.';
+        uploadResult.className = 'result error';
+        uploadResult.style.display = 'block';
+        return;
+      }
+      
+      const file = fileInput.files[0];
+      
+      log(`Processing CSV file: ${file.name}`);
+      
+      // Create a FormData object
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('delimiter', delimiterSelect.value);
+      formData.append('filter_type', filterTypeSelect.value);
+      
+      // Show loading
+      uploadResult.innerHTML = '<div style="display: flex; align-items: center; gap: 8px;"><i class="fas fa-spinner fa-spin"></i> Processing file...</div>';
+      uploadResult.className = 'result';
+      uploadResult.style.display = 'block';
+      
+      // Send the file to the API
+      fetch('/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => {
+            throw new Error(err.detail || `HTTP error! status: ${response.status}`);
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        log(`Processing successful: ${data.message}`, 'success');
+        uploadResult.innerHTML = `
+          <div style="color: var(--success-color); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-check-circle"></i> ${data.message}
+          </div>
+          <div>Processed ${data.rows} rows with ${data.columns} columns.</div>
+        `;
+        uploadResult.className = 'result';
+      })
+      .catch(error => {
+        log(`Error processing file: ${error.message}`, 'error');
+        uploadResult.innerHTML = `<div style="color: var(--danger-color); display: flex; align-items: center; gap: 8px;"><i class="fas fa-times-circle"></i> Error: ${error.message}</div>`;
+        uploadResult.className = 'result error';
+      });
+    }
+    
+    // Download processed CSV
+    function downloadProcessedCSV() {
+      log('Initiating download of processed CSV');
+      
+      try {
+        // Create an iframe to receive the download
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        
+        // Create a form element
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/download';
+        
+        // Set target to the iframe
+        form.target = 'download_iframe';
+        iframe.name = 'download_iframe';
+        
+        // Append form to body, submit it, then remove
+        document.body.appendChild(form);
+        
+        log('Submitting form for direct download...');
+        form.submit();
+        
+        // Show success message
+        const uploadResult = document.getElementById('uploadResult');
+        uploadResult.innerHTML = '<div style="color: var(--success-color); display: flex; align-items: center; gap: 8px;"><i class="fas fa-check-circle"></i> Download initiated. If download doesn\'t start automatically, <a href="/download" style="margin-left: 5px;">click here</a>.</div>';
+        uploadResult.className = 'result';
+        uploadResult.style.display = 'block';
+        
+        // Clean up after a delay
+        setTimeout(() => {
+          setTimeout(() => {
+            document.body.removeChild(form);
+            document.body.removeChild(iframe);
+          }, 5000);
+        }, 2000);
+        
+      } catch (error) {
+        log(`Error during download: ${error.message}`, 'error');
+        
+        const uploadResult = document.getElementById('uploadResult');
+        uploadResult.innerHTML = `<div style="color: var(--danger-color); display: flex; align-items: center; gap: 8px;"><i class="fas fa-times-circle"></i> Error initiating download: ${error.message}</div>`;
+        uploadResult.className = 'result error';
+        uploadResult.style.display = 'block';
+      }
+    }
+    
+    // Process in Excel style format
+    function processExcelStyle() {
+      const fileInput = document.getElementById('csvFile');
+      const delimiterSelect = document.getElementById('delimiter');
+      const filterTypeSelect = document.getElementById('filterType');
+      const uploadResult = document.getElementById('uploadResult');
+      
+      if (!fileInput.files || fileInput.files.length === 0) {
+        uploadResult.innerHTML = 'Please select a CSV file first.';
+        uploadResult.className = 'result error';
+        uploadResult.style.display = 'block';
+        return;
+      }
+      
+      const file = fileInput.files[0];
+      
+      log(`Processing CSV file in Excel style: ${file.name}`);
+      
+      try {
+        // Create a FormData object
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('delimiter', delimiterSelect.value);
+        formData.append('filter_type', filterTypeSelect.value);
+        
+        // Show loading
+        uploadResult.innerHTML = '<div style="display: flex; align-items: center; gap: 8px;"><i class="fas fa-spinner fa-spin"></i> Processing Excel style format...</div>';
+        uploadResult.className = 'result';
+        uploadResult.style.display = 'block';
+        
+        // Create an iframe to receive the download
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        
+        // Create a form element
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/process_excel_style';
+        
+        // Add fields from formData
+        for (const [key, value] of formData.entries()) {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          if (key === 'file') {
+            // We can't directly set File objects as values
+            // Instead, we'll use the API directly
+            input.value = file.name;
+          } else {
+            input.value = value;
+          }
+          form.appendChild(input);
+        }
+        
+        // Add file input
+        const fileField = document.createElement('input');
+        fileField.type = 'file';
+        fileField.name = 'file';
+        fileField.files = fileInput.files;
+        fileField.style.display = 'none';
+        form.appendChild(fileField);
+        
+        // Set target to the iframe
+        form.target = 'download_iframe';
+        iframe.name = 'download_iframe';
+        
+        // Append form to body, submit it, then remove
+        document.body.appendChild(form);
+        
+        log('Submitting form for Excel-style processing...');
+        form.submit();
+        
+        // Show success message
+        uploadResult.innerHTML = '<div style="color: var(--success-color); display: flex; align-items: center; gap: 8px;"><i class="fas fa-check-circle"></i> Excel format processing initiated. Download should start automatically.</div>';
+        uploadResult.className = 'result';
+        
+        // Clean up after a delay
+        setTimeout(() => {
+          setTimeout(() => {
+            document.body.removeChild(form);
+            document.body.removeChild(iframe);
+          }, 5000);
+        }, 2000);
+        
+      } catch (error) {
+        log(`Error during Excel-style processing: ${error.message}`, 'error');
+        
+        uploadResult.innerHTML = `<div style="color: var(--danger-color); display: flex; align-items: center; gap: 8px;"><i class="fas fa-times-circle"></i> Error: ${error.message}</div>`;
+        uploadResult.className = 'result error';
+      }
+    }
+    
+    // Parse CSV into rows
+    function parseCSV(text, delimiter = ',') {
+      // Handle newlines inside quoted fields
+      const rows = [];
+      let row = [];
+      let insideQuotes = false;
+      let buffer = '';
+      
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1] || '';
+        
+        if (char === '"') {
+          if (insideQuotes && nextChar === '"') {
+            // Double quote inside quotes means escaped quote
+            buffer += '"';
+            i++; // Skip the next quote
+          } else {
+            // Toggle quote state
+            insideQuotes = !insideQuotes;
+          }
+        } else if (char === delimiter && !insideQuotes) {
+          // End of field
+          row.push(buffer);
+          buffer = '';
+        } else if ((char === '\n' || char === '\r') && !insideQuotes) {
+          // End of row
+          if (char === '\r' && nextChar === '\n') {
+            i++; // Skip the next \n for \r\n combo
+          }
+          
+          if (buffer !== '' || row.length > 0) {
+            row.push(buffer);
+            rows.push(row);
+            row = [];
+            buffer = '';
+          }
+        } else {
+          // Regular character
+          buffer += char;
+        }
+      }
+      
+      // Handle last buffer and row
+      if (buffer !== '' || row.length > 0) {
+        row.push(buffer);
+        rows.push(row);
+      }
+      
+      return rows;
+    }
+    
+    // Apply filter to rows
+    function applyFilter(rows, filterType) {
+      if (filterType === 'all' || rows.length <= 1) {
+        return rows;
+      }
+      
+      const headerRow = rows[0];
+      const ownerOccupiedIdx = headerRow.findIndex(col => 
+        col.toLowerCase().includes('owner occupied') || 
+        col.toLowerCase().includes('owner_occupied'));
+      
+      // If no owner occupied column, just return all rows
+      if (ownerOccupiedIdx === -1) {
+        log("No 'Owner Occupied' column found, showing all records", 'warning');
+        return rows;
+      }
+      
+      // Apply filtering
+      const filteredRows = [headerRow]; // Keep the header row
+      
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        
+        if (row.length <= ownerOccupiedIdx) continue; // Skip malformed rows
+        
+        const ownerOccupiedValue = (row[ownerOccupiedIdx] || '').toUpperCase().trim();
+        const isOwnerOccupied = ['Y', 'YES', 'TRUE', 'T', '1', 'OWNER', 'OCCUPIED'].includes(ownerOccupiedValue);
+        
+        if (filterType === 'owner_occupied') {
+          // Keep only owner occupied = yes
+          if (isOwnerOccupied) {
+            filteredRows.push([...row]); // Clone to avoid reference issues
+          }
+        } else if (filterType === 'renter') {
+          // Keep only owner occupied = no
+          if (!isOwnerOccupied) {
+            filteredRows.push([...row]);
+          }
+        } else if (filterType === 'investor') {
+          // Also keep owner occupied = no but for different purpose
+          if (!isOwnerOccupied) {
+            filteredRows.push([...row]);
+          }
+        }
+      }
+      
+      return filteredRows;
+    }
+    
+    // Refresh preview data
+    function refreshPreview() {
+      previewCSV();
+      log('Preview refreshed');
+    }
+    
+    // Update filter status display
+    function updateFilterStatus(filterType, recordCount) {
+      const filterStatus = document.getElementById('filterStatus');
+      const filterStatusText = document.getElementById('filterStatusText');
+      const recordCountElem = document.getElementById('recordCount');
+      const previewCount = document.getElementById('previewCount');
+      
+      // Remove all filter classes
+      filterStatus.className = 'filter-status';
+      
+      // Add specific filter class
+      if (filterType !== 'all') {
+        filterStatus.classList.add(filterType);
+      }
+      
+      // Update text
+      switch (filterType) {
+        case 'owner_occupied':
+          filterStatusText.innerHTML = '<i class="fas fa-home"></i> Owner Occupied Properties';
+          break;
+        case 'renter':
+          filterStatusText.innerHTML = '<i class="fas fa-key"></i> Renter Properties';
+          break;
+        case 'investor':
+          filterStatusText.innerHTML = '<i class="fas fa-chart-line"></i> Investor Properties';
+          break;
+        default:
+          filterStatusText.innerHTML = '<i class="fas fa-filter"></i> All Records';
+      }
+      
+      // Update count
+      recordCountElem.textContent = `${recordCount} record${recordCount !== 1 ? 's' : ''}`;
+      previewCount.textContent = `${recordCount} record${recordCount !== 1 ? 's' : ''}`;
+    }
+    
+    // Update preview table
+    function updatePreviewTable(rows) {
+      const table = document.getElementById('previewTable');
+      const thead = table.querySelector('thead');
+      const tbody = table.querySelector('tbody');
+      
+      // Clear table
+      thead.innerHTML = '';
+      tbody.innerHTML = '';
+      
+      if (rows.length === 0) {
+        thead.innerHTML = '<tr><th>No data to preview</th></tr>';
+        return;
+      }
+      
+      // Add header row
+      const headerRow = document.createElement('tr');
+      rows[0].forEach((cell, index) => {
+        const th = document.createElement('th');
+        th.textContent = cell || `Column ${index + 1}`;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      
+      // Add data rows (limit to first 100 for performance)
+      const maxRows = Math.min(rows.length, 101);
+      for (let i = 1; i < maxRows; i++) {
+        const row = rows[i];
+        const tr = document.createElement('tr');
+        
+        row.forEach(cell => {
+          const td = document.createElement('td');
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
+        
+        tbody.appendChild(tr);
+      }
+      
+      // Add a note if rows were limited
+      if (rows.length > 101) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = rows[0].length;
+        td.textContent = `... (${rows.length - 101} more rows not shown)`;
+        td.style.textAlign = 'center';
+        td.style.padding = '10px';
+        td.style.fontStyle = 'italic';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+      }
+      
+      log(`Updated preview table with ${rows.length - 1} rows`);
+    }
+  </script>
+</body>
+</html> 

@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real Estate Letter Templates</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #3b7dd8;
+      --primary-hover: #2a5ea1;
+      --sidebar-width: 250px;
+      --sidebar-color: #1e2c3a;
+      --success-color: #28a745;
+      --danger-color: #dc3545;
+      --gray-100: #f8f9fa;
+      --gray-200: #e9ecef;
+      --gray-300: #dee2e6;
+      --gray-400: #ced4da;
+      --gray-500: #adb5bd;
+      --gray-600: #6c757d;
+      --gray-700: #495057;
+      --gray-800: #343a40;
+      --gray-900: #212529;
+      --border-radius: 8px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 20px rgba(0,0,0,0.1);
+      --transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+      background-color: #f8f9fa;
+      color: var(--gray-800);
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background-color: var(--sidebar-color);
+      color: white;
+      height: 100vh;
+      position: fixed;
+      left: 0;
+      top: 0;
+      overflow-y: auto;
+      z-index: 10;
+      box-shadow: var(--shadow-md);
+      transition: var(--transition);
+    }
+    
+    .sidebar-header {
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .sidebar-logo {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: white;
+      text-decoration: none;
+    }
+    
+    .sidebar-toggle {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: none;
+    }
+    
+    .nav-menu {
+      list-style: none;
+      padding: 20px 0;
+    }
+    
+    .nav-item {
+      margin-bottom: 5px;
+    }
+    
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      color: var(--gray-400);
+      text-decoration: none;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    
+    .nav-link:hover {
+      background-color: rgba(255,255,255,0.1);
+      color: white;
+    }
+    
+    .nav-link.active {
+      background-color: rgba(255,255,255,0.15);
+      color: white;
+      border-left: 3px solid var(--primary-color);
+    }
+    
+    .nav-icon {
+      margin-right: 10px;
+      width: 20px;
+      text-align: center;
+    }
+    
+    /* Main content */
+    .main-content {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      padding: 20px;
+      transition: var(--transition);
+    }
+    
+    .header {
+      background-color: white;
+      padding: 20px;
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .content-wrapper {
+      border-radius: var(--border-radius);
+    }
+    
+    .section {
+      display: none;
+      background-color: white;
+      border-radius: var(--border-radius);
+      padding: 25px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 20px;
+    }
+    
+    .section.active {
+      display: block;
+      animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    h1 {
+      margin-bottom: 0.5rem;
+      color: var(--gray-800);
+      font-size: 1.8rem;
+    }
+    
+    h2 {
+      color: var(--gray-800);
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+    
+    p {
+      color: var(--gray-700);
+      margin-bottom: 1rem;
+    }
+    
+    /* Card components */
+    .card {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      border: 1px solid var(--gray-200);
+      height: 100%;
+    }
+    
+    .card:hover {
+      box-shadow: var(--shadow-md);
+    }
+    
+    /* Form elements */
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--gray-700);
+    }
+    
+    input[type="text"],
+    input[type="file"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--gray-300);
+      border-radius: var(--border-radius);
+      font-family: inherit;
+      font-size: 14px;
+      transition: var(--transition);
+    }
+    
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--primary-color);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 125, 216, 0.2);
+    }
+    
+    textarea {
+      min-height: 300px;
+      resize: vertical;
+    }
+    
+    button {
+      padding: 0.75rem 1rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+    
+    button:hover {
+      background-color: var(--primary-hover);
+    }
+    
+    button:disabled {
+      background-color: var(--gray-400);
+      cursor: not-allowed;
+    }
+    
+    button.danger {
+      background-color: var(--danger-color);
+    }
+    
+    button.danger:hover {
+      background-color: #bd2130;
+    }
+    
+    button.success {
+      background-color: var(--success-color);
+    }
+    
+    button.success:hover {
+      background-color: #218838;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 0;
+        transform: translateX(-250px);
+      }
+      
+      .sidebar.active {
+        width: var(--sidebar-width);
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+      
+      .sidebar-toggle {
+        display: block;
+      }
+      
+      .mobile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        background-color: white;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        box-shadow: var(--shadow-sm);
+      }
+      
+      .mobile-toggle {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: var(--gray-700);
+      }
+    }
+    
+    /* Template specific styles */
+    .template-item {
+      border: 1px solid var(--gray-300);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      margin-bottom: 15px;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .template-item:hover {
+      border-color: var(--gray-400);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .template-name {
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: var(--gray-800);
+    }
+    
+    .template-description {
+      color: var(--gray-600);
+      margin-bottom: 15px;
+      flex-grow: 1;
+    }
+    
+    .template-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    
+    .template-actions button {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 12px;
+    }
+    
+    .edit-btn::before {
+      content: "\f044";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+    }
+    
+    .use-btn::before {
+      content: "\f15b";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+    }
+    
+    /* Badge styles */
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      background-color: var(--primary-color);
+      color: white;
+      margin-right: 5px;
+    }
+    
+    .badge.new {
+      background-color: #28a745;
+    }
+    
+    .badge.updated {
+      background-color: #17a2b8;
+    }
+    
+    /* Progress Bar */
+    .progress {
+      height: 5px;
+      background-color: var(--gray-200);
+      border-radius: 5px;
+      margin: 5px 0;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background-color: var(--primary-color);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    /* Improved form styling */
+    .form-control-modern {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-control-modern label {
+      position: absolute;
+      top: -10px;
+      left: 10px;
+      padding: 0 5px;
+      background-color: white;
+      font-size: 12px;
+      color: var(--gray-600);
+      pointer-events: none;
+      transition: var(--transition);
+      z-index: 1;
+    }
+    
+    .dark-mode .form-control-modern label {
+      background-color: #1a2130;
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: var(--gray-200);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--gray-400);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--gray-500);
+    }
+    
+    .dark-mode ::-webkit-scrollbar-track {
+      background: var(--gray-200);
+    }
+    
+    .dark-mode ::-webkit-scrollbar-thumb {
+      background: var(--gray-400);
+    }
+    
+    /* Variables */
+    .variables-container {
+      border: 1px solid var(--gray-300);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      margin-bottom: 20px;
+      background-color: var(--gray-100);
+    }
+    
+    .variables-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: var(--gray-800);
+    }
+    
+    .variables-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .variable-item {
+      background-color: white;
+      padding: 8px 12px;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 14px;
+      border: 1px solid var(--gray-300);
+      transition: var(--transition);
+    }
+    
+    .variable-item:hover {
+      background-color: var(--gray-200);
+      border-color: var(--gray-400);
+    }
+    
+    /* Results */
+    .result {
+      padding: 15px;
+      margin-top: 15px;
+      border-radius: var(--border-radius);
+    }
+    
+    .result.success {
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+    
+    .result.error {
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+    
+    /* Letter preview */
+    .letter-preview {
+      margin-top: 20px;
+      border: 1px solid var(--gray-300);
+      padding: 20px;
+      border-radius: var(--border-radius);
+      background-color: white;
+    }
+    
+    .letter-navigation {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    
+    .letter-content {
+      white-space: pre-wrap;
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 1.5;
+      padding: 20px;
+      background-color: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--border-radius);
+    }
+    
+    /* Logs */
+    .logs-container {
+      max-height: 500px;
+      overflow-y: auto;
+      padding: 15px;
+      background-color: #2c3e50;
+      border-radius: var(--border-radius);
+      font-family: monospace;
+      font-size: 13px;
+      color: #f8f9fa;
+    }
+    
+    .log-entry {
+      margin-bottom: 8px;
+      padding: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .log-entry.error {
+      color: #ff8f8f;
+    }
+    
+    .log-entry.warning {
+      color: #ffe066;
+    }
+    
+    .log-entry.success {
+      color: #72daa4;
+    }
+    
+    .log-timestamp {
+      color: #a9b3bc;
+      margin-right: 10px;
+      font-weight: 500;
+    }
+    
+    /* Dark mode */
+    .dark-mode {
+      --primary-color: #5a8dee;
+      --primary-hover: #7aa5f3;
+      --sidebar-color: #151e29;
+      --gray-100: #1a2130;
+      --gray-200: #232f3e;
+      --gray-300: #2c3a4a;
+      --gray-700: #b1b7c5;
+      --gray-800: #d3d6df;
+      --gray-900: #e9ebf1;
+    }
+    
+    .dark-mode body {
+      background-color: #0e1623;
+      color: var(--gray-800);
+    }
+    
+    .dark-mode .header, 
+    .dark-mode .section,
+    .dark-mode .card {
+      background-color: #1a2130;
+      border-color: #2c3a4a;
+    }
+    
+    .dark-mode .template-item {
+      background-color: #1a2130;
+      border-color: #2c3a4a;
+    }
+    
+    .dark-mode .template-item:hover {
+      border-color: #3d4c5d;
+      background-color: #1d2535;
+    }
+    
+    .dark-mode .variable-item {
+      background-color: #232f3e;
+      border-color: #2c3a4a;
+      color: #d3d6df;
+    }
+    
+    .dark-mode .variable-item:hover {
+      background-color: #2c3a4a;
+      border-color: #3d4c5d;
+    }
+    
+    .dark-mode input[type="text"],
+    .dark-mode select,
+    .dark-mode textarea {
+      background-color: #232f3e;
+      border-color: #2c3a4a;
+      color: #d3d6df;
+    }
+    
+    .dark-mode input[type="text"]:focus,
+    .dark-mode select:focus,
+    .dark-mode textarea:focus {
+      border-color: var(--primary-color);
+    }
+    
+    .dark-mode .letter-content {
+      background-color: #fff;
+      color: #000;
+    }
+    
+    .dark-mode .mobile-header {
+      background-color: #1a2130;
+    }
+    
+    .dark-mode .mobile-toggle {
+      color: #d3d6df;
+    }
+    
+    .theme-toggle {
+      margin-top: auto;
+      padding: 10px 20px;
+      background-color: transparent;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--gray-400);
+      cursor: pointer;
+    }
+    
+    .theme-toggle:hover {
+      background-color: rgba(255,255,255,0.05);
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <a href="#" class="sidebar-logo">RE Letters</a>
+      <button class="sidebar-toggle" id="sidebarClose">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <ul class="nav-menu">
+      <li class="nav-item">
+        <div class="nav-link active" data-tab="templates">
+          <span class="nav-icon"><i class="fas fa-list-alt"></i></span>
+          Templates
+        </div>
+      </li>
+      <li class="nav-item">
+        <div class="nav-link" data-tab="create">
+          <span class="nav-icon"><i class="fas fa-edit"></i></span>
+          Create/Edit
+        </div>
+      </li>
+      <li class="nav-item">
+        <div class="nav-link" data-tab="generate">
+          <span class="nav-icon"><i class="fas fa-paper-plane"></i></span>
+          Generate Letters
+        </div>
+      </li>
+      <li class="nav-item">
+        <div class="nav-link" data-tab="logs">
+          <span class="nav-icon"><i class="fas fa-terminal"></i></span>
+          Debug Logs
+        </div>
+      </li>
+      <li class="nav-item">
+        <a href="test.html" class="nav-link">
+          <span class="nav-icon"><i class="fas fa-file-csv"></i></span>
+          CSV Upload
+        </a>
+      </li>
+    </ul>
+    <div class="theme-toggle" id="themeToggle">
+      <span>Toggle Dark Mode</span>
+      <span class="nav-icon"><i class="fas fa-moon"></i></span>
+    </div>
+  </nav>
+  
+  <!-- Mobile header for small screens -->
+  <div class="mobile-header" id="mobileHeader" style="display: none;">
+    <button class="mobile-toggle" id="sidebarToggle">
+      <i class="fas fa-bars"></i>
+    </button>
+    <h1>RE Letters</h1>
+  </div>
+  
+  <!-- Main content -->
+  <main class="main-content">
+    <div class="header">
+      <h1>Real Estate Letter Templates</h1>
+      <p>Create and manage letter templates for real estate marketing campaigns</p>
+    </div>
+    
+    <div class="content-wrapper">
+      <!-- Templates Section -->
+      <section class="section active" id="templates-tab">
+        <h2>Available Templates</h2>
+        <p>Select a template to edit or use for generating letters.</p>
+        <div id="templates-list">
+          <div>Loading templates...</div>
+        </div>
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+          <button id="createNewBtn" class="success">
+            <i class="fas fa-plus"></i> Create New Template
+          </button>
+          <button id="refreshTemplatesBtn">
+            <i class="fas fa-sync-alt"></i> Refresh Templates
+          </button>
+        </div>
+      </section>
+      
+      <!-- Create/Edit Section -->
+      <section class="section" id="create-tab">
+        <h2>Create/Edit Template</h2>
+        <div class="variables-container">
+          <div class="variables-title">Available Variables</div>
+          <p>Click on a variable to insert it into your template:</p>
+          <div id="variablesList" class="variables-list"></div>
+        </div>
+        <form id="templateForm">
+          <input type="hidden" id="templateId" value="">
+          <div class="form-group">
+            <label for="templateName">Template Name:</label>
+            <input type="text" id="templateName" required>
+          </div>
+          <div class="form-group">
+            <label for="templateDescription">Description:</label>
+            <input type="text" id="templateDescription">
+          </div>
+          <div class="form-group">
+            <label for="templateContent">Template Content:</label>
+            <textarea id="templateContent" required></textarea>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button type="submit"><i class="fas fa-save"></i> Save Template</button>
+            <button type="button" id="cancelEditBtn"><i class="fas fa-times"></i> Cancel</button>
+            <button type="button" id="deleteTemplateBtn" class="danger" style="display: none;"><i class="fas fa-trash"></i> Delete Template</button>
+          </div>
+        </form>
+      </section>
+      
+      <!-- Generate Section -->
+      <section class="section" id="generate-tab">
+        <h2>Generate Letters</h2>
+        <p>Select a template and upload a CSV file to generate personalized letters.</p>
+        <form id="generateForm">
+          <div class="form-group">
+            <label for="templateSelect">Select Template:</label>
+            <select id="templateSelect" required>
+              <option value="">Select a template...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="csvFile">Upload CSV File:</label>
+            <input type="file" id="csvFile" accept=".csv" required>
+          </div>
+          <div class="form-group">
+            <label for="filterType">Filter Records:</label>
+            <select id="filterType">
+              <option value="all">All Records</option>
+              <option value="owner_occupied">Owner Occupied Only</option>
+              <option value="renter">Renter Properties (replace names with "Current Renter")</option>
+              <option value="investor">Investor Properties (keep owner names if available)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="delimiter">CSV Delimiter:</label>
+            <select id="delimiter">
+              <option value=",">Comma (,)</option>
+              <option value=";">Semicolon (;)</option>
+              <option value="\t">Tab</option>
+              <option value="|">Pipe (|)</option>
+            </select>
+          </div>
+          <button type="submit" id="generateBtn"><i class="fas fa-cog"></i> Generate Test Letter</button>
+          <div id="generateResult" class="result"></div>
+        </form>
+        <div id="letterPreview" class="letter-preview" style="display: none;">
+          <div class="letter-navigation">
+            <div>
+              <span id="letterCount">Test Letter</span>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button id="prevLetterBtn" disabled><i class="fas fa-chevron-left"></i> Previous</button>
+              <button id="nextLetterBtn" disabled><i class="fas fa-chevron-right"></i> Next</button>
+              <button id="downloadBtn" class="success"><i class="fas fa-file-download"></i> Download All Letters</button>
+              <button id="downloadSingleBtn"><i class="fas fa-download"></i> Download Current Letter</button>
+            </div>
+          </div>
+          <div id="letterContent" class="letter-content"></div>
+        </div>
+      </section>
+      
+      <!-- Logs Section -->
+      <section class="section" id="logs-tab">
+        <h2>Debug Logs</h2>
+        <div id="logs" class="logs-container"></div>
+        <div style="margin-top: 15px;">
+          <button id="clearLogsBtn"><i class="fas fa-broom"></i> Clear Logs</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+  // Global state
+  const state = {
+    templates: [],
+    currentTemplateId: null,
+    letters: [],
+    currentLetterIndex: 0,
+    variables: {
+      "{first_name}": "Owner's first name",
+      "{last_name}": "Owner's last name", 
+      "{full_name}": "Owner's full name (First Last)",
+      "{address}": "Property address",
+      "{city}": "Property city",
+      "{state}": "Property state",
+      "{zip}": "Property ZIP code",
+      "{current_renter}": "Will be replaced with 'Current Renter' for renter properties",
+      "{current_owner}": "Will be replaced with 'Current Owner' for investor properties with empty names",
+      "{current_date}": "Today's date (MM/DD/YYYY)",
+      "{current_month}": "Current month name",
+      "{current_year}": "Current year"
+    }
+  };
+  
+  // Initialize app when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    // Set up tabs
+    setupTabs();
+    
+    // Set up mobile responsiveness
+    setupMobileResponsiveness();
+    
+    // Initialize theme
+    initializeTheme();
+    
+    // Load variables and templates
+    loadTemplateVariables();
+    loadTemplates();
+    
+    // Set up event listeners
+    document.getElementById('createNewBtn').addEventListener('click', createNewTemplate);
+    document.getElementById('refreshTemplatesBtn').addEventListener('click', loadTemplates);
+    document.getElementById('templateForm').addEventListener('submit', saveTemplate);
+    document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
+    document.getElementById('deleteTemplateBtn').addEventListener('click', deleteTemplate);
+    document.getElementById('generateForm').addEventListener('submit', generateLetters);
+    document.getElementById('prevLetterBtn').addEventListener('click', showPreviousLetter);
+    document.getElementById('nextLetterBtn').addEventListener('click', showNextLetter);
+    document.getElementById('downloadBtn').addEventListener('click', downloadAllLetters);
+    document.getElementById('downloadSingleBtn').addEventListener('click', downloadCurrentLetter);
+    document.getElementById('clearLogsBtn').addEventListener('click', clearLogs);
+    
+    // Log successful initialization
+    log('Application initialized successfully');
+  });
+  
+  // Set up tabs functionality
+  function setupTabs() {
+    const tabButtons = document.querySelectorAll('.nav-link');
+    const tabContents = document.querySelectorAll('.section');
+    
+    tabButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const tabId = this.getAttribute('data-tab');
+        console.log("Tab clicked:", tabId);
+        
+        // Remove active class from all buttons and content
+        tabButtons.forEach(b => b.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+        
+        // Add active class to clicked button and corresponding content
+        this.classList.add('active');
+        const tabContent = document.getElementById(tabId + '-tab');
+        if (tabContent) {
+          tabContent.classList.add('active');
+          log("Switched to tab: " + tabId);
+        } else {
+          console.error("Tab content not found for:", tabId);
+          log("Error: Tab content not found for " + tabId, 'error');
+        }
+      });
+    });
+    
+    log('Tab initialization complete');
+  }
+  
+  // Logging function with levels: info, error, warning, success
+  function log(message, level = 'info') {
+    const logsContainer = document.getElementById('logs');
+    const logEntry = document.createElement('div');
+    logEntry.className = 'log-entry ' + level;
+    
+    const timestamp = new Date().toLocaleTimeString();
+    const timestampSpan = document.createElement('span');
+    timestampSpan.className = 'log-timestamp';
+    timestampSpan.textContent = timestamp;
+    
+    logEntry.appendChild(timestampSpan);
+    logEntry.appendChild(document.createTextNode(message));
+    
+    logsContainer.appendChild(logEntry);
+    logsContainer.scrollTop = logsContainer.scrollHeight;
+    
+    console.log(`[${level.toUpperCase()}] ${message}`);
+  }
+  
+  // Clear logs
+  function clearLogs() {
+    document.getElementById('logs').innerHTML = '';
+    log('Logs cleared');
+  }
+  
+  // Show result message
+  function showResult(element, message, isError = false) {
+    element.textContent = message;
+    element.className = 'result ' + (isError ? 'error' : 'success');
+    element.style.display = 'block';
+  }
+  
+  // Load template variables
+  function loadTemplateVariables() {
+    try {
+      log('Loading template variables...');
+      
+      // Update UI
+      const variablesList = document.getElementById('variablesList');
+      variablesList.innerHTML = '';
+      
+      for (const [variable, description] of Object.entries(state.variables)) {
+        const varItem = document.createElement('div');
+        varItem.className = 'variable-item';
+        varItem.textContent = variable;
+        varItem.title = description;
+        varItem.addEventListener('click', () => insertVariableIntoTemplate(variable));
+        variablesList.appendChild(varItem);
+      }
+      
+      log('Template variables loaded successfully');
+    } catch (error) {
+      log(`Error loading template variables: ${error.message}`, 'error');
+    }
+  }
+  
+  // Insert variable into template
+  function insertVariableIntoTemplate(variable) {
+    const textarea = document.getElementById('templateContent');
+    const cursorPos = textarea.selectionStart;
+    const textBefore = textarea.value.substring(0, cursorPos);
+    const textAfter = textarea.value.substring(cursorPos);
+    
+    textarea.value = textBefore + variable + textAfter;
+    textarea.focus();
+    textarea.selectionStart = cursorPos + variable.length;
+    textarea.selectionEnd = cursorPos + variable.length;
+    
+    log(`Inserted variable: ${variable}`);
+  }
+  
+  // Load templates
+  function loadTemplates() {
+    try {
+      log('Loading templates from API');
+      
+      fetch('/templates')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          state.templates = data;
+          log(`Loaded ${state.templates.length} templates from API`);
+          updateTemplatesList();
+          updateTemplateSelect();
+        })
+        .catch(error => {
+          log(`Error loading templates from API: ${error.message}`, 'error');
+          
+          // Try to load from localStorage as fallback
+          loadTemplatesFromLocalStorage();
+        });
+    } catch (error) {
+      log(`Error in loadTemplates: ${error.message}`, 'error');
+      loadTemplatesFromLocalStorage();
+    }
+  }
+  
+  // Load templates from localStorage as a fallback
+  function loadTemplatesFromLocalStorage() {
+    try {
+      log('Falling back to loading templates from local storage');
+      
+      // Check localStorage
+      const templatesJSON = localStorage.getItem('letterTemplates');
+      
+      // If we have templates, parse them
+      if (templatesJSON) {
+        state.templates = JSON.parse(templatesJSON);
+        log(`Loaded ${state.templates.length} templates from local storage`);
+      } else {
+        // Create default template if no templates
+        if (state.templates.length === 0) {
+          log('No templates found, creating default template');
+          const defaultTemplate = {
+            id: generateUUID(),
+            name: "Basic Real Estate Letter",
+            description: "A simple letter template for reaching out to property owners",
+            content: "Date: {current_date}\n\nDear {first_name} {last_name},\n\nI hope this letter finds you well. I'm writing to you regarding your property at {address}, {city}, {state} {zip}.\n\nI would like to discuss some opportunities that might be of interest to you as a property owner. Real estate values in your area have been changing, and I believe there might be potential benefits worth exploring.\n\n{current_owner}{current_renter}Whether you're considering selling, refinancing, or simply want to learn more about the current market conditions affecting your property, I'd be happy to provide you with information and assistance.\n\nPlease feel free to contact me at your convenience to discuss this further.\n\nSincerely,\n\nYour Name\nReal Estate Professional\nPhone: (555) 123-4567\nEmail: your.email@example.com",
+            created: new Date().toISOString(),
+            updated: new Date().toISOString()
+          };
+          
+          state.templates.push(defaultTemplate);
+          saveTemplatestoLocalStorage();
+        }
+      }
+      
+      // Update UI
+      updateTemplatesList();
+      updateTemplateSelect();
+      
+    } catch (error) {
+      log(`Error loading templates from local storage: ${error.message}`, 'error');
+      
+      const templatesList = document.getElementById('templates-list');
+      templatesList.innerHTML = '<div class="error">Failed to load templates. Please try again.</div>';
+    }
+  }
+  
+  // Helper to generate UUID
+  function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  
+  // Save templates to localStorage
+  function saveTemplatestoLocalStorage() {
+    localStorage.setItem('letterTemplates', JSON.stringify(state.templates));
+    log('Templates saved to local storage');
+  }
+  
+  // Update templates list
+  function updateTemplatesList() {
+    // Update UI - Templates list
+    const templatesList = document.getElementById('templates-list');
+    templatesList.innerHTML = state.templates.length === 0 
+      ? '<div>No templates found. Create a new one to get started.</div>'
+      : '';
+    
+    // Get current date for comparison
+    const currentDate = new Date();
+    const oneDayAgo = new Date(currentDate);
+    oneDayAgo.setDate(currentDate.getDate() - 1);
+    const oneWeekAgo = new Date(currentDate);
+    oneWeekAgo.setDate(currentDate.getDate() - 7);
+    
+    state.templates.forEach(template => {
+      // Format dates for display
+      const createdDate = new Date(template.created);
+      const updatedDate = new Date(template.updated);
+      const isNew = createdDate > oneWeekAgo;
+      const isUpdated = !isNew && updatedDate > oneDayAgo;
+      
+      const formattedDate = updatedDate.toLocaleDateString(undefined, {
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric'
+      });
+      
+      const item = document.createElement('div');
+      item.className = 'template-item';
+      item.innerHTML = `
+        <div class="template-name">
+          ${template.name}
+          ${isNew ? '<span class="badge new">New</span>' : ''}
+          ${isUpdated ? '<span class="badge updated">Updated</span>' : ''}
+        </div>
+        <div class="template-description">${template.description || 'No description provided.'}</div>
+        <div style="color: var(--gray-500); font-size: 12px; margin-bottom: 10px;">
+          Updated: ${formattedDate}
+        </div>
+        <div class="template-actions">
+          <button class="edit-btn">Edit</button>
+          <button class="use-btn success">Use</button>
+        </div>
+      `;
+      
+      // Set up event listeners
+      item.querySelector('.edit-btn').addEventListener('click', () => {
+        editTemplate(template.id);
+      });
+      
+      item.querySelector('.use-btn').addEventListener('click', () => {
+        useTemplate(template.id);
+      });
+      
+      templatesList.appendChild(item);
+    });
+  }
+  
+  // Update template select in generate tab
+  function updateTemplateSelect() {
+    const templateSelect = document.getElementById('templateSelect');
+    templateSelect.innerHTML = '<option value="">Select a template...</option>';
+    
+    state.templates.forEach(template => {
+      const option = document.createElement('option');
+      option.value = template.id;
+      option.textContent = template.name;
+      templateSelect.appendChild(option);
+    });
+  }
+  
+  // Create new template
+  function createNewTemplate() {
+    log('Creating new template');
+    
+    // Show the create/edit form
+    document.querySelector('.section#create-tab').classList.add('active');
+  }
+  
+  // Edit template
+  function editTemplate(templateId) {
+    log('Editing template');
+    
+    // Find the template in the state
+    const template = state.templates.find(t => t.id === templateId);
+    
+    if (template) {
+      // Populate the form with template data
+      document.getElementById('templateId').value = template.id;
+      document.getElementById('templateName').value = template.name;
+      document.getElementById('templateDescription').value = template.description;
+      document.getElementById('templateContent').value = template.content;
+      
+      // Show the create/edit form
+      document.querySelector('.section#create-tab').classList.add('active');
+    } else {
+      log('Template not found', 'error');
+    }
+  }
+  
+  // Create template on the server
+  function createTemplate(templateData) {
+    log('Creating new template on server');
+    
+    return fetch('/templates', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(templateData)
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => {
+          throw new Error(err.detail || `HTTP error! status: ${response.status}`);
+        });
+      }
+      return response.json();
+    });
+  }
+  
+  // Save template
+  function saveTemplate(e) {
+    e.preventDefault();
+    
+    const templateId = document.getElementById('templateId').value;
+    const templateName = document.getElementById('templateName').value;
+    const templateDescription = document.getElementById('templateDescription').value;
+    const templateContent = document.getElementById('templateContent').value;
+    
+    if (!templateName || !templateContent) {
+      showResult(document.getElementById('saveResult'), 'Please fill in all fields', true);
+      return;
+    }
+    
+    log('Saving template');
+    
+    const templateData = {
+      id: templateId,
+      name: templateName,
+      description: templateDescription,
+      content: templateContent,
+      created: new Date().toISOString(),
+      updated: new Date().toISOString()
+    };
+    
+    if (templateId) {
+      updateTemplate(templateId, templateData)
+        .then(response => {
+          showResult(document.getElementById('saveResult'), 'Template updated successfully', false);
+          loadTemplates();
+        })
+        .catch(error => {
+          showResult(document.getElementById('saveResult'), `Error updating template: ${error.message}`, true);
+        });
+    } else {
+      createTemplate(templateData)
+        .then(response => {
+          showResult(document.getElementById('saveResult'), 'Template created successfully', false);
+          loadTemplates();
+        })
+        .catch(error => {
+          showResult(document.getElementById('saveResult'), `Error creating template: ${error.message}`, true);
+        });
+    }
+  }
+  
+  // Update template
+  function updateTemplate(templateId, templateData) {
+    log(`Updating template: ${templateId}`);
+    
+    return fetch(`/templates/${templateId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(templateData)
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => {
+          throw new Error(err.detail || `HTTP error! status: ${response.status}`);
+        });
+      }
+      return response.json();
+    });
+  }
+  
+  // Delete template
+  function deleteTemplate(templateId) {
+    log(`Deleting template: ${templateId}`);
+    
+    return fetch(`/templates/${templateId}`, {
+      method: 'DELETE'
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => {
+          throw new Error(err.detail || `HTTP error! status: ${response.status}`);
+        });
+      }
+      return response.json();
+    });
+  }
+  
+  // Use template for generating letters
+  function useTemplate(templateId) {
+    log(`Selected template for letter generation: ${templateId}`);
+    
+    // Set the template ID in the select and switch to generate tab
+    document.getElementById('templateSelect').value = templateId;
+    document.querySelector('[data-tab="generate"]').click();
+  }
+  
+  // Generate letters
+  async function generateLetters(e) {
+    e.preventDefault();
+    
+    const templateId = document.getElementById('templateSelect').value;
+    const fileInput = document.getElementById('csvFile');
+    const filterType = document.getElementById('filterType').value;
+    const delimiter = document.getElementById('delimiter').value;
+    const generateBtn = document.getElementById('generateBtn');
+    const generateResult = document.getElementById('generateResult');
+    
+    if (!templateId) {
+      showResult(generateResult, 'Please select a template', true);
+      return;
+    }
+    
+    if (!fileInput.files || !fileInput.files[0]) {
+      showResult(generateResult, 'Please select a CSV file', true);
+      return;
+    }
+    
+    try {
+      log(`Generating test letter...`);
+      
+      // Disable button and show loading message
+      generateBtn.disabled = true;
+      generateBtn.textContent = 'Generating...';
+      showResult(generateResult, 'Generating test letter, please wait...', false);
+      
+      // Find the selected template
+      const template = state.templates.find(t => t.id === templateId);
+      
+      if (!template) {
+        throw new Error('Template not found');
+      }
+      
+      // Parse the CSV file
+      const file = fileInput.files[0];
+      const rows = await readCSVFile(file, delimiter);
+      
+      if (!rows || rows.length <= 1) {
+        throw new Error('No data found in CSV file');
+      }
+      
+      // Get current date for variable replacement
+      const currentDate = new Date();
+      const dateStr = currentDate.toLocaleDateString();
+      const monthStr = currentDate.toLocaleString('default', { month: 'long' });
+      const yearStr = currentDate.getFullYear().toString();
+      
+      // For testing, we'll just take the header row and the first data row
+      let filteredRows = applyFilter(rows, filterType);
+      if (filteredRows.length > 2) { // Header + at least one data row
+        filteredRows = [filteredRows[0], filteredRows[1]]; // Just use the header and the first filtered data row
+      }
+      
+      log(`Using just the first row for testing`);
+      
+      // Generate letters for each filtered row
+      state.letters = [];
+      
+      // Get column indices
+      const headerRow = rows[0];
+      const firstNameIdx = headerRow.findIndex(col => col.toLowerCase().includes('first name'));
+      const lastNameIdx = headerRow.findIndex(col => col.toLowerCase().includes('last name'));
+      const addressIdx = headerRow.findIndex(col => col.toLowerCase().includes('address') && !col.toLowerCase().includes('city') && !col.toLowerCase().includes('state') && !col.toLowerCase().includes('zip'));
+      const cityIdx = headerRow.findIndex(col => col.toLowerCase().includes('city'));
+      const stateIdx = headerRow.findIndex(col => col.toLowerCase().includes('state'));
+      const zipIdx = headerRow.findIndex(col => col.toLowerCase().includes('zip') || col.toLowerCase().includes('postal'));
+      
+      if (filteredRows.length > 1) {
+        // Process only the first data row
+        const row = filteredRows[1];
+        
+        // Create a variable mapping for this row
+        const variables = {};
+        
+        // Add name variables
+        if (firstNameIdx !== -1) {
+          variables['{first_name}'] = row[firstNameIdx] || '';
+        }
+        
+        if (lastNameIdx !== -1) {
+          variables['{last_name}'] = row[lastNameIdx] || '';
+        }
+        
+        // Create full name
+        if (firstNameIdx !== -1 && lastNameIdx !== -1) {
+          const firstName = row[firstNameIdx] || '';
+          const lastName = row[lastNameIdx] || '';
+          
+          if (firstName || lastName) {
+            if (firstName.toLowerCase() === 'current renter') {
+              variables['{full_name}'] = 'Current Renter';
+            } else if (firstName.toLowerCase() === 'current owner') {
+              variables['{full_name}'] = 'Current Owner';
+            } else {
+              variables['{full_name}'] = `${firstName} ${lastName}`.trim();
+            }
+          } else {
+            variables['{full_name}'] = '';
+          }
+        }
+        
+        // Add address variables
+        if (addressIdx !== -1) variables['{address}'] = row[addressIdx] || '';
+        if (cityIdx !== -1) variables['{city}'] = row[cityIdx] || '';
+        if (stateIdx !== -1) variables['{state}'] = row[stateIdx] || '';
+        if (zipIdx !== -1) variables['{zip}'] = row[zipIdx] || '';
+        
+        // Add special variables
+        if (firstNameIdx !== -1 && row[firstNameIdx] === 'Current Renter') {
+          variables['{current_renter}'] = 'Current Renter';
+        } else {
+          variables['{current_renter}'] = '';
+        }
+        
+        if (firstNameIdx !== -1 && row[firstNameIdx] === 'Current Owner') {
+          variables['{current_owner}'] = 'Current Owner';
+        } else {
+          variables['{current_owner}'] = '';
+        }
+        
+        // Add date variables
+        variables['{current_date}'] = dateStr;
+        variables['{current_month}'] = monthStr;
+        variables['{current_year}'] = yearStr;
+        
+        // Replace variables in template
+        let content = template.content;
+        
+        for (const [key, value] of Object.entries(variables)) {
+          content = content.replace(new RegExp(key, 'g'), value);
+        }
+        
+        // Add letter to state
+        state.letters.push({
+          content,
+          variables
+        });
+        
+        // For debugging
+        console.log('Variables used for test letter:', variables);
+      }
+      
+      // Show success message
+      showResult(generateResult, `Generated test letter using "${template.name}" template.`, false);
+      
+      // Display letter preview if we have letters
+      if (state.letters.length > 0) {
+        state.currentLetterIndex = 0;
+        document.getElementById('letterPreview').style.display = 'block';
+        document.getElementById('letterCount').textContent = `Test Letter`;
+        document.getElementById('letterContent').innerHTML = state.letters[0].content.replace(/\n/g, '<br>');
+        
+        // Set navigation buttons
+        document.getElementById('prevLetterBtn').disabled = true;
+        document.getElementById('nextLetterBtn').disabled = true;
+      } else {
+        document.getElementById('letterPreview').style.display = 'none';
+        showResult(generateResult, `No letter could be generated. Check your CSV data.`, true);
+      }
+      
+    } catch (error) {
+      log(`Error generating test letter: ${error.message}`, 'error');
+      showResult(generateResult, `Error generating test letter: ${error.message}`, true);
+    } finally {
+      // Re-enable button
+      generateBtn.disabled = false;
+      generateBtn.textContent = 'Generate Test Letter';
+    }
+  }
+  
+  // Read CSV file
+  function readCSVFile(file, delimiter) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        try {
+          const content = e.target.result;
+          log(`Parsing CSV with delimiter: ${delimiter}`);
+          
+          // Handle tab delimiter
+          const actualDelimiter = delimiter === '\\t' ? '\t' : delimiter;
+          
+          // Parse the CSV
+          const rows = parseCSV(content, actualDelimiter);
+          
+          if (!rows || rows.length === 0) {
+            reject(new Error('No data found in CSV'));
+            return;
+          }
+          
+          log(`Parsed ${rows.length} rows from CSV`);
+          resolve(rows);
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      reader.onerror = function() {
+        reject(new Error('Failed to read file'));
+      };
+      
+      reader.readAsText(file);
+    });
+  }
+  
+  // Parse CSV into rows
+  function parseCSV(text, delimiter = ',') {
+    // Handle newlines inside quoted fields
+    const rows = [];
+    let row = [];
+    let insideQuotes = false;
+    let buffer = '';
+    
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1] || '';
+      
+      if (char === '"') {
+        if (insideQuotes && nextChar === '"') {
+          // Double quote inside quotes means escaped quote
+          buffer += '"';
+          i++; // Skip the next quote
+        } else {
+          // Toggle quote state
+          insideQuotes = !insideQuotes;
+        }
+      } else if (char === delimiter && !insideQuotes) {
+        // End of field
+        row.push(buffer);
+        buffer = '';
+      } else if ((char === '\n' || char === '\r') && !insideQuotes) {
+        // End of row
+        if (char === '\r' && nextChar === '\n') {
+          i++; // Skip the next \n for \r\n combo
+        }
+        
+        if (buffer !== '' || row.length > 0) {
+          row.push(buffer);
+          rows.push(row);
+          row = [];
+          buffer = '';
+        }
+      } else {
+        // Regular character
+        buffer += char;
+      }
+    }
+    
+    // Handle last buffer and row
+    if (buffer !== '' || row.length > 0) {
+      row.push(buffer);
+      rows.push(row);
+    }
+    
+    return rows;
+  }
+  
+  // Apply filter to rows
+  function applyFilter(rows, filterType) {
+    if (filterType === 'all' || rows.length <= 1) {
+      return rows;
+    }
+    
+    const headerRow = rows[0];
+    const ownerOccupiedIdx = headerRow.findIndex(col => col.toLowerCase().includes('owner occupied'));
+    const firstNameIdx = headerRow.findIndex(col => col.toLowerCase().includes('first name'));
+    const lastNameIdx = headerRow.findIndex(col => col.toLowerCase().includes('last name'));
+    
+    // If no owner occupied column, just return all rows
+    if (ownerOccupiedIdx === -1) {
+      log("No 'Owner Occupied' column found, showing all records", 'warning');
+      return rows;
+    }
+    
+    // Apply filtering
+    const filteredRows = [headerRow]; // Keep the header row
+    
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      
+      if (row.length <= ownerOccupiedIdx) continue; // Skip malformed rows
+      
+      const ownerOccupiedValue = (row[ownerOccupiedIdx] || '').toUpperCase().trim();
+      const isOwnerOccupied = ['Y', 'YES', 'TRUE', 'T', '1', 'OWNER', 'OCCUPIED'].includes(ownerOccupiedValue);
+      
+      if (filterType === 'owner_occupied') {
+        // Keep only owner occupied = yes
+        if (isOwnerOccupied) {
+          filteredRows.push([...row]); // Clone to avoid reference issues
+        }
+      } else if (filterType === 'renter') {
+        // Keep only owner occupied = no, and replace owner names with "Current Renter"
+        if (!isOwnerOccupied) {
+          const renterRow = [...row]; // Clone
+          
+          // Replace owner name fields with "Current Renter"
+          if (firstNameIdx !== -1) {
+            renterRow[firstNameIdx] = "Current Renter";
+          }
+          
+          if (lastNameIdx !== -1) {
+            renterRow[lastNameIdx] = "";
+          }
+          
+          filteredRows.push(renterRow);
+        }
+      } else if (filterType === 'investor') {
+        // Keep only owner occupied = no, keep original owner names
+        if (!isOwnerOccupied) {
+          const investorRow = [...row]; // Clone
+          
+          // For investor properties, replace empty first and last names with "Current Owner"
+          if (firstNameIdx !== -1 && (!investorRow[firstNameIdx] || investorRow[firstNameIdx].trim() === '')) {
+            investorRow[firstNameIdx] = "Current Owner";
+            log(`Row ${i}: Replaced empty first name with 'Current Owner'`, 'info');
+          }
+          
+          if (lastNameIdx !== -1 && (!investorRow[lastNameIdx] || investorRow[lastNameIdx].trim() === '')) {
+            investorRow[lastNameIdx] = "Current Owner";
+            log(`Row ${i}: Replaced empty last name with 'Current Owner'`, 'info');
+          }
+          
+          filteredRows.push(investorRow);
+        }
+      }
+    }
+    
+    log(`Filter "${filterType}" resulted in ${filteredRows.length - 1} records (plus header)`, 'info');
+    return filteredRows;
+  }
+  
+  // Show previous letter
+  function showPreviousLetter() {
+    if (state.currentLetterIndex > 0) {
+      state.currentLetterIndex--;
+      updateLetterPreview();
+    }
+  }
+  
+  // Show next letter
+  function showNextLetter() {
+    if (state.currentLetterIndex < state.letters.length - 1) {
+      state.currentLetterIndex++;
+      updateLetterPreview();
+    }
+  }
+  
+  // Update letter preview
+  function updateLetterPreview() {
+    const letter = state.letters[state.currentLetterIndex];
+    document.getElementById('letterCount').textContent = `Letter ${state.currentLetterIndex + 1} of ${state.letters.length}`;
+    document.getElementById('letterContent').innerHTML = letter.content.replace(/\n/g, '<br>');
+    
+    // Enable/disable navigation buttons
+    updateLetterNavButtons();
+  }
+  
+  // Update letter navigation buttons
+  function updateLetterNavButtons() {
+    document.getElementById('prevLetterBtn').disabled = (state.currentLetterIndex === 0);
+    document.getElementById('nextLetterBtn').disabled = (state.currentLetterIndex === state.letters.length - 1);
+  }
+  
+  // Helper function to create a download link
+  function downloadFile(content, filename, contentType) {
+    const blob = new Blob([content], { type: contentType });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    
+    URL.revokeObjectURL(url);
+    
+    log(`File "${filename}" is ready for download`);
+  }
+  
+  // Download current letter
+  function downloadCurrentLetter() {
+    try {
+      if (state.letters.length === 0 || state.currentLetterIndex >= state.letters.length) {
+        log('No letter available to download', 'error');
+        return;
+      }
+      
+      log('Preparing to download current letter');
+      
+      // Get the current letter
+      const letter = state.letters[state.currentLetterIndex];
+      
+      // Create HTML content for the letter
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Real Estate Letter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.5;
+      margin: 0;
+      padding: 0.5in;
+    }
+    .letter {
+      max-width: 8.5in;
+      margin: 0 auto;
+    }
+    .letter-content {
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="letter">
+    <div class="letter-content">${letter.content.replace(/\n/g, '<br>')}</div>
+  </div>
+</body>
+</html>`;
+      
+      // Create filename based on address or recipient name
+      let filename = 'letter';
+      if (letter.variables && letter.variables['{address}']) {
+        filename = `letter_${letter.variables['{address}'].replace(/\s+/g, '_').replace(/[^a-z0-9_]/gi, '')}_${state.currentLetterIndex + 1}`;
+      } else if (letter.variables && letter.variables['{full_name}']) {
+        filename = `letter_${letter.variables['{full_name}'].replace(/\s+/g, '_').replace(/[^a-z0-9_]/gi, '')}_${state.currentLetterIndex + 1}`;
+      } else {
+        filename = `letter_${state.currentLetterIndex + 1}`;
+      }
+      
+      // Ensure filename isn't too long
+      if (filename.length > 100) {
+        filename = filename.substring(0, 100);
+      }
+      
+      // Download the file
+      downloadFile(html, `${filename}.html`, 'text/html');
+      
+    } catch (error) {
+      log(`Error downloading letter: ${error.message}`, 'error');
+    }
+  }
+  
+  // Download all letters
+  function downloadAllLetters() {
+    try {
+      log('Preparing to download all letters');
+      
+      if (state.letters.length === 0) {
+        log('No letters to download', 'error');
+        return;
+      }
+      
+      // Process letters using the API
+      processLetters(state.letters, 'html')
+        .then(blob => {
+          // Create download link
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `real_estate_letters_${new Date().toISOString().split('T')[0]}.html`;
+          a.click();
+          URL.revokeObjectURL(url);
+          
+          log('Letters downloaded successfully', 'success');
+        })
+        .catch(error => {
+          log(`Error downloading letters: ${error.message}`, 'error');
+        });
+      
+    } catch (error) {
+      log(`Error during letter download preparation: ${error.message}`, 'error');
+    }
+  }
+  
+  // Process letters
+  function processLetters(letters, format = 'html') {
+    log(`Processing ${letters.length} letters in ${format} format`);
+    
+    return fetch('/print_letters', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        letters: letters,
+        output_format: format
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => {
+          throw new Error(err.detail || `HTTP error! status: ${response.status}`);
+        });
+      }
+      return response.blob();
+    });
+  }
+  
+  // Mobile responsive functionality
+  function setupMobileResponsiveness() {
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarClose = document.getElementById('sidebarClose');
+    const mobileHeader = document.getElementById('mobileHeader');
+    
+    // Check if mobile view is needed
+    function checkMobileView() {
+      if (window.innerWidth <= 768) {
+        mobileHeader.style.display = 'flex';
+      } else {
+        mobileHeader.style.display = 'none';
+        sidebar.classList.remove('active'); // Reset sidebar when resizing to desktop
+      }
+    }
+    
+    // Toggle sidebar on mobile
+    if (sidebarToggle) {
+      sidebarToggle.addEventListener('click', function() {
+        sidebar.classList.add('active');
+      });
+    }
+    
+    // Close sidebar on mobile
+    if (sidebarClose) {
+      sidebarClose.addEventListener('click', function() {
+        sidebar.classList.remove('active');
+      });
+    }
+    
+    // Close sidebar when clicking outside
+    document.addEventListener('click', function(e) {
+      if (window.innerWidth <= 768 && 
+          sidebar.classList.contains('active') && 
+          !sidebar.contains(e.target) && 
+          e.target !== sidebarToggle) {
+        sidebar.classList.remove('active');
+      }
+    });
+    
+    // Close sidebar when clicking a nav link on mobile
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', function() {
+        if (window.innerWidth <= 768) {
+          sidebar.classList.remove('active');
+        }
+      });
+    });
+    
+    // Initialize mobile view
+    checkMobileView();
+    
+    // Update when window is resized
+    window.addEventListener('resize', checkMobileView);
+    
+    log('Mobile responsiveness initialized');
+  }
+  
+  // Initialize the application's theme
+  function initializeTheme() {
+    const themeToggle = document.getElementById('themeToggle');
+    const rootElement = document.documentElement;
+    const moonIcon = '<i class="fas fa-moon"></i>';
+    const sunIcon = '<i class="fas fa-sun"></i>';
+    
+    // Check for stored theme preference
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    // Function to update icon
+    function updateThemeIcon(isDark) {
+      const iconElement = themeToggle.querySelector('.nav-icon');
+      iconElement.innerHTML = isDark ? sunIcon : moonIcon;
+    }
+    
+    // Apply initial theme based on saved preference or system preference
+    if (savedTheme === 'dark' || (!savedTheme && prefersDarkMode)) {
+      rootElement.classList.add('dark-mode');
+      updateThemeIcon(true);
+      log('Applied dark mode theme');
+    } else {
+      rootElement.classList.remove('dark-mode');
+      updateThemeIcon(false);
+      log('Applied light mode theme');
+    }
+    
+    // Toggle theme on click
+    themeToggle.addEventListener('click', function() {
+      const isDarkMode = rootElement.classList.toggle('dark-mode');
+      
+      // Update icon
+      updateThemeIcon(isDarkMode);
+      
+      // Save preference
+      localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+      
+      log(`Switched to ${isDarkMode ? 'dark' : 'light'} mode`);
+    });
+    
+    log('Theme initialization complete');
+  }
+  </script>
+</body>
+</html>
