@@ -2,11 +2,19 @@
   "version": 2,
   "builds": [
     { "src": "*.html", "use": "@vercel/static" },
-    { "src": "api/index.py", "use": "@vercel/python" }
+    { "src": "api/index.py", "use": "@vercel/python" },
+    { "src": "main.py", "use": "@vercel/python" }
   ],
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/index.py" },
     { "src": "/health", "dest": "/api/index.py" },
+    { "src": "/test", "dest": "/api/index.py" },
+    { "src": "/templates", "dest": "/api/index.py" }, 
+    { "src": "/upload", "dest": "/api/index.py" },
+    { "src": "/print_letters", "dest": "/main.py" },
+    { "src": "/process_excel_style", "dest": "/main.py" },
+    { "src": "/generate_letters", "dest": "/main.py" },
+    { "src": "/download", "dest": "/main.py" },
     { "src": "/(.*)", "dest": "/$1" }
   ]
 } 

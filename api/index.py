@@ -1,8 +1,11 @@
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Request, HTTPException, UploadFile, File, Form
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import sys
 import os
+import json
+from pathlib import Path
+import uuid
 
 # Create a simplified app
 app = FastAPI()
@@ -16,6 +19,38 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Create temp directory
+TEMP_DIR = Path("./temp")
+TEMP_DIR.mkdir(exist_ok=True)
+
+# Create templates directory
+TEMPLATES_DIR = Path("./templates")
+TEMPLATES_DIR.mkdir(exist_ok=True)
+
+# Create data directory
+DATA_DIR = Path("./data")
+DATA_DIR.mkdir(exist_ok=True)
+
+# Simplified letter templates storage
+LETTER_TEMPLATES = {}
+
+# Load any existing templates
+@app.on_event("startup")
+async def startup_event():
+    """Load templates on startup"""
+    try:
+        for template_file in TEMPLATES_DIR.glob("*.json"):
+            try:
+                with open(template_file, "r") as f:
+                    template_data = json.load(f)
+                    template_id = template_file.stem  # Use filename without extension as ID
+                    LETTER_TEMPLATES[template_id] = template_data
+                    print(f"Loaded template: {template_id}")
+            except Exception as e:
+                print(f"Error loading template {template_file}: {str(e)}")
+    except Exception as e:
+        print(f"Error on startup: {str(e)}")
+
 @app.get("/")
 async def root():
     """Root endpoint"""
@@ -25,6 +60,7 @@ async def root():
         "endpoints": [
             "/health",
             "/test",
+            "/api-info",
             "/templates",
             "/upload",
             "/download"
@@ -49,8 +85,52 @@ async def api_info():
         "environment": {k: v for k, v in os.environ.items() if not k.startswith("AWS_")},
         "directory": os.getcwd(),
         "files": os.listdir(),
-        "api_directory": os.listdir("api") if os.path.exists("api") else "Not found"
+        "api_directory": os.listdir("api") if os.path.exists("api") else "Not found",
+        "templates_loaded": len(LETTER_TEMPLATES)
     }
+
+@app.get("/templates")
+async def get_templates():
+    """Get all letter templates"""
+    templates = []
+    for template_id, template_data in LETTER_TEMPLATES.items():
+        templates.append({
+            "id": template_id,
+            "name": template_data.get("name", "Unnamed"),
+            "description": template_data.get("description", ""),
+            "created": template_data.get("created", ""),
+            "updated": template_data.get("updated", "")
+        })
+    return templates
+
+@app.post("/upload")
+async def upload_file(
+    file: UploadFile = File(...),
+    delimiter: str = Form(",")
+):
+    """
+    Upload a file for processing
+    """
+    try:
+        # Create a unique session directory
+        session_id = str(uuid.uuid4())
+        session_dir = TEMP_DIR / session_id
+        session_dir.mkdir(exist_ok=True)
+        
+        # Save the file
+        file_path = session_dir / file.filename
+        with open(file_path, "wb") as f:
+            content = await file.read()
+            f.write(content)
+        
+        return {
+            "status": "success", 
+            "message": "File uploaded successfully", 
+            "session_id": session_id,
+            "filename": file.filename
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Add error handler
 @app.exception_handler(Exception)
