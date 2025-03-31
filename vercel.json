@@ -2,15 +2,15 @@
   "version": 2,
   "builds": [
     { "src": "*.html", "use": "@vercel/static" },
-    { "src": "api/index.py", "use": "@vercel/python" },
-    { "src": "api/vercel_debug.py", "use": "@vercel/python" },
-    { "src": "api/minimal.py", "use": "@vercel/python" }
+    { "src": "api/*.py", "use": "@vercel/python" }
   ],
   "routes": [
+    { "src": "/health", "dest": "/api/health.py" },
+    { "src": "/api/health", "dest": "/api/health.py" },
+    { "src": "/minimal", "dest": "/api/minimal.py" },
     { "src": "/api/minimal", "dest": "/api/minimal.py" },
-    { "src": "/api/debug", "dest": "/api/vercel_debug.py" },
-    { "src": "/api/(.*)", "dest": "/api/index.py" },
-    { "src": "/health", "dest": "/api/index.py" },
+    { "src": "/test", "dest": "/api/minimal.py" },
+    { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/templates", "dest": "/api/index.py" },
     { "src": "/templates/(.*)", "dest": "/api/index.py" },
     { "src": "/template_variables", "dest": "/api/index.py" },
@@ -19,7 +19,6 @@
     { "src": "/download", "dest": "/api/index.py" },
     { "src": "/process_excel_style", "dest": "/api/index.py" },
     { "src": "/print_letters", "dest": "/api/index.py" },
-    { "src": "/test", "dest": "/api/index.py" },
     { "src": "/(.*)", "dest": "/$1" }
   ]
 } 

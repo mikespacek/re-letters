@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RE Letters - Real Estate Letters Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+        header {
+            background-color: #0070f3;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            padding: 2rem;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #0070f3;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background-color: #0050a3;
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>RE Letters</h1>
+        <p>Generate customized real estate letters from CSV data</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>Welcome to RE Letters</h2>
+            <p>
+                This application helps you create customized real estate letters for different properties
+                and owners. Upload your CSV data, create letter templates, and generate personalized communications.
+            </p>
+            
+            <div>
+                <a href="/test.html" class="btn">CSV Processor</a>
+                <a href="/letters.html" class="btn">Letter Templates</a>
+                <a href="/vercel_test.html" class="btn">Test Deployment</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>API Status</h2>
+            <button onclick="checkHealth()" class="btn">Check API Health</button>
+            <pre id="healthResult">Click the button to check API status...</pre>
+        </div>
+    </div>
+
+    <footer>
+        <p>RE Letters - Real Estate Communication Tool</p>
+    </footer>
+
+    <script>
+        async function checkHealth() {
+            const resultElement = document.getElementById('healthResult');
+            resultElement.textContent = 'Checking API health...';
+            
+            try {
+                const response = await fetch('/health');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                resultElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultElement.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html> 

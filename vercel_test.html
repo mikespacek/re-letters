@@ -53,9 +53,6 @@
         <button onclick="testMinimalApi()">Test Minimal API</button>
         <pre id="minimalResult">Click the button to test...</pre>
         
-        <button onclick="testDebugApi()">Test Debug API</button>
-        <pre id="debugResult">Click the button to test...</pre>
-        
         <button onclick="testHealthApi()">Test Health API</button>
         <pre id="healthResult">Click the button to test...</pre>
     </div>
@@ -67,19 +64,9 @@
             
             try {
                 const response = await fetch('/api/minimal');
-                const data = await response.json();
-                resultElement.textContent = JSON.stringify(data, null, 2);
-            } catch (error) {
-                resultElement.textContent = 'Error: ' + error.message;
-            }
-        }
-        
-        async function testDebugApi() {
-            const resultElement = document.getElementById('debugResult');
-            resultElement.textContent = 'Testing...';
-            
-            try {
-                const response = await fetch('/api/debug');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
                 resultElement.textContent = JSON.stringify(data, null, 2);
             } catch (error) {
@@ -93,6 +80,9 @@
             
             try {
                 const response = await fetch('/health');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
                 resultElement.textContent = JSON.stringify(data, null, 2);
             } catch (error) {
