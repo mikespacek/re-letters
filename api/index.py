@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, Request, HTTPException, UploadFile, File, Form, Body
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -7,6 +7,8 @@ import os
 import json
 from pathlib import Path
 import uuid
+from typing import Dict, Any, Optional
+from datetime import datetime
 
 # Import main.py functionality
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -149,6 +151,85 @@ async def get_templates():
             "updated": template_data.get("updated", "")
         })
     return templates
+
+@app.post("/templates")
+async def create_template(template_data: Dict[str, Any] = Body(...)):
+    """Create a new letter template"""
+    try:
+        # Generate a new ID if not provided
+        if "id" not in template_data or not template_data["id"]:
+            template_data["id"] = str(uuid.uuid4())
+        
+        template_id = template_data["id"]
+        
+        # Add timestamps if not present
+        now = datetime.now().isoformat()
+        if "created" not in template_data:
+            template_data["created"] = now
+        if "updated" not in template_data:
+            template_data["updated"] = now
+        
+        # Save template to memory
+        LETTER_TEMPLATES[template_id] = template_data
+        
+        # Save template to disk
+        template_path = TEMPLATES_DIR / f"{template_id}.json"
+        with open(template_path, "w") as f:
+            json.dump(template_data, f, indent=2)
+        
+        return template_data
+    except Exception as e:
+        print(f"Error creating template: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/templates/{template_id}")
+async def update_template(template_id: str, template_data: Dict[str, Any] = Body(...)):
+    """Update an existing letter template"""
+    try:
+        # Check if template exists
+        if template_id not in LETTER_TEMPLATES:
+            raise HTTPException(status_code=404, detail=f"Template with ID {template_id} not found")
+        
+        # Update timestamp
+        template_data["updated"] = datetime.now().isoformat()
+        
+        # Save template to memory
+        LETTER_TEMPLATES[template_id] = template_data
+        
+        # Save template to disk
+        template_path = TEMPLATES_DIR / f"{template_id}.json"
+        with open(template_path, "w") as f:
+            json.dump(template_data, f, indent=2)
+        
+        return template_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error updating template: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/templates/{template_id}")
+async def delete_template(template_id: str):
+    """Delete a letter template"""
+    try:
+        # Check if template exists
+        if template_id not in LETTER_TEMPLATES:
+            raise HTTPException(status_code=404, detail=f"Template with ID {template_id} not found")
+        
+        # Remove from memory
+        del LETTER_TEMPLATES[template_id]
+        
+        # Remove from disk
+        template_path = TEMPLATES_DIR / f"{template_id}.json"
+        if template_path.exists():
+            template_path.unlink()
+        
+        return {"status": "success", "message": f"Template {template_id} deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error deleting template: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/upload")
 async def upload_file(

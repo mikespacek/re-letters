@@ -990,22 +990,46 @@
   function loadTemplates() {
     try {
       log('Loading templates from API');
+      const templatesList = document.getElementById('templates-list');
+      templatesList.innerHTML = '<div>Loading templates...</div>';
       
-      fetch('/templates')
+      // Add a timestamp to avoid cache issues
+      fetch('/templates?t=' + new Date().getTime(), {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      })
         .then(response => {
+          log(`API response status: ${response.status}`);
+          
+          // Check if the response is actually JSON
+          const contentType = response.headers.get('content-type');
+          log(`Content-Type: ${contentType}`);
+          
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
+          
+          if (!contentType || !contentType.includes('application/json')) {
+            // This is likely HTML instead of JSON
+            return response.text().then(text => {
+              log('Response is not JSON, first 100 chars:', text.substring(0, 100));
+              throw new Error('Response is not JSON. Got: ' + contentType);
+            });
+          }
+          
           return response.json();
         })
         .then(data => {
+          log(`Loaded ${data.length} templates from API`);
           state.templates = data;
-          log(`Loaded ${state.templates.length} templates from API`);
           updateTemplatesList();
           updateTemplateSelect();
         })
         .catch(error => {
           log(`Error loading templates from API: ${error.message}`, 'error');
+          templatesList.innerHTML = `<div class="error">Failed to load templates from API: ${error.message}</div>`;
           
           // Try to load from localStorage as fallback
           loadTemplatesFromLocalStorage();
@@ -1181,16 +1205,38 @@
     return fetch('/templates', {
       method: 'POST',
       headers: {
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(templateData)
     })
     .then(response => {
+      log(`Create template response status: ${response.status}`);
+      
+      // Check if the response is JSON
+      const contentType = response.headers.get('content-type');
+      log(`Content-Type: ${contentType}`);
+      
       if (!response.ok) {
-        return response.json().then(err => {
-          throw new Error(err.detail || `HTTP error! status: ${response.status}`);
+        if (contentType && contentType.includes('application/json')) {
+          return response.json().then(err => {
+            throw new Error(err.detail || `HTTP error! status: ${response.status}`);
+          });
+        } else {
+          return response.text().then(text => {
+            log('Error response is not JSON, first 100 chars:', text.substring(0, 100));
+            throw new Error(`HTTP error! status: ${response.status}`);
+          });
+        }
+      }
+      
+      if (!contentType || !contentType.includes('application/json')) {
+        return response.text().then(text => {
+          log('Response is not JSON, first 100 chars:', text.substring(0, 100));
+          throw new Error('Response is not JSON');
         });
       }
+      
       return response.json();
     });
   }
@@ -1248,16 +1294,38 @@
     return fetch(`/templates/${templateId}`, {
       method: 'PUT',
       headers: {
+        'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(templateData)
     })
     .then(response => {
+      log(`Update template response status: ${response.status}`);
+      
+      // Check if the response is JSON
+      const contentType = response.headers.get('content-type');
+      log(`Content-Type: ${contentType}`);
+      
       if (!response.ok) {
-        return response.json().then(err => {
-          throw new Error(err.detail || `HTTP error! status: ${response.status}`);
+        if (contentType && contentType.includes('application/json')) {
+          return response.json().then(err => {
+            throw new Error(err.detail || `HTTP error! status: ${response.status}`);
+          });
+        } else {
+          return response.text().then(text => {
+            log('Error response is not JSON, first 100 chars:', text.substring(0, 100));
+            throw new Error(`HTTP error! status: ${response.status}`);
+          });
+        }
+      }
+      
+      if (!contentType || !contentType.includes('application/json')) {
+        return response.text().then(text => {
+          log('Response is not JSON, first 100 chars:', text.substring(0, 100));
+          throw new Error('Response is not JSON');
         });
       }
+      
       return response.json();
     });
   }
