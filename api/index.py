@@ -1,11 +1,16 @@
 from fastapi import FastAPI, Request, HTTPException, UploadFile, File, Form
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 import sys
 import os
 import json
 from pathlib import Path
 import uuid
+
+# Import main.py functionality
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import main
 
 # Create a simplified app
 app = FastAPI()
@@ -26,6 +31,9 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["Content-Disposition"],
 )
+
+# Mount static files directory
+app.mount("/static", StaticFiles(directory="."), name="static")
 
 # Create temp directory
 TEMP_DIR = Path("./temp")
@@ -59,9 +67,40 @@ async def startup_event():
     except Exception as e:
         print(f"Error on startup: {str(e)}")
 
-@app.get("/")
-async def root():
-    """Root endpoint"""
+# Serve HTML files
+@app.get("/", response_class=HTMLResponse)
+async def serve_index():
+    """Serve the index.html file"""
+    with open("index.html") as f:
+        return f.read()
+
+@app.get("/letters.html", response_class=HTMLResponse)
+async def serve_letters():
+    """Serve the letters.html file"""
+    with open("letters.html") as f:
+        return f.read()
+
+@app.get("/test.html", response_class=HTMLResponse)
+async def serve_test():
+    """Serve the test.html file"""
+    with open("test.html") as f:
+        return f.read()
+
+@app.get("/debug.html", response_class=HTMLResponse)
+async def serve_debug():
+    """Serve the debug.html file"""
+    with open("debug.html") as f:
+        return f.read()
+
+@app.get("/api-test.html", response_class=HTMLResponse)
+async def serve_api_test():
+    """Serve the api-test.html file"""
+    with open("api-test.html") as f:
+        return f.read()
+
+@app.get("/api")
+async def api_root():
+    """API Root endpoint"""
     return {
         "message": "RE Letters API is running",
         "version": "1.0.0",
@@ -139,6 +178,27 @@ async def upload_file(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# Proxy endpoints from main.py
+@app.post("/process_excel_style")
+async def process_excel_style_proxy(file: UploadFile = File(...), delimiter: str = Form(None)):
+    """Proxy for the process_excel_style endpoint in main.py"""
+    return await main.process_excel_style_endpoint(file, delimiter)
+
+@app.post("/generate_letters")
+async def generate_letters_proxy(request: Request):
+    """Proxy for the generate_letters endpoint in main.py"""
+    return await main.generate_letters(request)
+
+@app.post("/print_letters")
+async def print_letters_proxy(request: Request):
+    """Proxy for the print_letters endpoint in main.py"""
+    return await main.print_letters(request)
+
+@app.post("/download")
+async def download_proxy(file_name: str = Form(...), session_id: str = Form(...)):
+    """Proxy for the download endpoint in main.py"""
+    return await main.download(file_name, session_id)
 
 # Add error handler
 @app.exception_handler(Exception)
