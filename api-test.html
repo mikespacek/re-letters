@@ -177,17 +177,34 @@
             resultElement.textContent = 'Fetching data...';
             
             try {
+                console.log(`Testing endpoint: ${endpoint}`);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+                
                 const startTime = new Date().getTime();
-                const response = await fetch(endpoint);
+                const response = await fetch(endpoint, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                
                 const endTime = new Date().getTime();
                 const responseTime = endTime - startTime;
                 
+                console.log(`Response for ${endpoint}:`, response.status);
+                
                 if (response.ok) {
                     const data = await response.json();
+                    console.log(`Data for ${endpoint}:`, data);
                     statusElement.innerHTML = `Success! <span>(Status: ${response.status}, Response time: ${responseTime}ms)</span>`;
                     statusElement.className = 'status success';
                     resultElement.textContent = JSON.stringify(data, null, 2);
                 } else {
+                    console.warn(`Error for ${endpoint}:`, response.status);
                     statusElement.innerHTML = `Error! <span>(Status: ${response.status}, Response time: ${responseTime}ms)</span>`;
                     statusElement.className = 'status error';
                     
@@ -199,11 +216,25 @@
                     }
                 }
             } catch (error) {
+                console.error(`Network error for ${endpoint}:`, error);
                 statusElement.innerHTML = `Network Error!`;
                 statusElement.className = 'status error';
                 resultElement.textContent = `Error: ${error.message}`;
             }
         }
+        
+        // Test all endpoints on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait a moment to ensure the page is fully loaded
+            setTimeout(() => {
+                console.log('Testing all endpoints automatically...');
+                testEndpoint('/');
+                testEndpoint('/health');
+                testEndpoint('/test');
+                testEndpoint('/api-info');
+                testEndpoint('/api');
+            }, 1000);
+        });
     </script>
 </body>
 </html> 

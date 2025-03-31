@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Debug Tools</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #f5f7fa;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        pre {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            overflow: auto;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        input[type="text"] {
+            padding: 8px;
+            width: 100%;
+            max-width: 300px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-ok {
+            background-color: #28a745;
+        }
+        .status-error {
+            background-color: #dc3545;
+        }
+        .nav {
+            margin-bottom: 20px;
+        }
+        .nav a {
+            margin-right: 15px;
+            color: #3498db;
+            text-decoration: none;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API Debug Tools</h1>
+        
+        <div class="nav">
+            <a href="/">Home</a>
+            <a href="/test.html">CSV Processor</a>
+            <a href="/letters.html">Letter Templates</a>
+            <a href="/api-test.html">API Test</a>
+        </div>
+        
+        <div class="card">
+            <h2>Network Tests</h2>
+            <div class="input-group">
+                <h3>Health Check</h3>
+                <button onclick="testEndpoint('/health')">Test Health Endpoint</button>
+                <div id="health-status"></div>
+                <pre id="health-result">Click the button to test...</pre>
+            </div>
+            
+            <div class="input-group">
+                <h3>Custom Endpoint Test</h3>
+                <input type="text" id="custom-endpoint" placeholder="/api/endpoint" value="/api">
+                <button onclick="testCustomEndpoint()">Test Endpoint</button>
+                <div id="custom-status"></div>
+                <pre id="custom-result">Enter an endpoint and click Test</pre>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Browser Info</h2>
+            <button onclick="showBrowserInfo()">Show Browser Information</button>
+            <pre id="browser-info">Click to show browser information...</pre>
+        </div>
+        
+        <div class="card">
+            <h2>Network Diagnostics</h2>
+            <button onclick="runNetworkDiagnostics()">Run Network Diagnostics</button>
+            <pre id="diagnostics-result">Click to run diagnostics...</pre>
+        </div>
+        
+        <div class="card">
+            <h2>CORS Test</h2>
+            <button onclick="testCORS()">Test CORS Configuration</button>
+            <pre id="cors-result">Click to test CORS...</pre>
+        </div>
+    </div>
+    
+    <script>
+        async function testEndpoint(endpoint) {
+            const statusElement = document.getElementById('health-status');
+            const resultElement = document.getElementById('health-result');
+            
+            statusElement.innerHTML = '<span class="status-indicator"></span> Testing...';
+            resultElement.textContent = 'Fetching data...';
+            
+            try {
+                console.log(`Testing endpoint: ${endpoint}`);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const response = await fetch(endpoint, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusElement.innerHTML = '<span class="status-indicator status-ok"></span> <span class="success">Success!</span>';
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    statusElement.innerHTML = '<span class="status-indicator status-error"></span> <span class="error">Error!</span>';
+                    try {
+                        const errorData = await response.json();
+                        resultElement.textContent = JSON.stringify(errorData, null, 2);
+                    } catch (e) {
+                        resultElement.textContent = `HTTP Error: ${response.status} ${response.statusText}`;
+                    }
+                }
+            } catch (error) {
+                statusElement.innerHTML = '<span class="status-indicator status-error"></span> <span class="error">Network Error!</span>';
+                resultElement.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        async function testCustomEndpoint() {
+            const endpoint = document.getElementById('custom-endpoint').value.trim();
+            if (!endpoint) {
+                alert('Please enter an endpoint path');
+                return;
+            }
+            
+            const statusElement = document.getElementById('custom-status');
+            const resultElement = document.getElementById('custom-result');
+            
+            statusElement.innerHTML = '<span class="status-indicator"></span> Testing...';
+            resultElement.textContent = `Fetching data from ${endpoint}...`;
+            
+            try {
+                console.log(`Testing custom endpoint: ${endpoint}`);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                
+                const response = await fetch(endpoint, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusElement.innerHTML = '<span class="status-indicator status-ok"></span> <span class="success">Success!</span>';
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    statusElement.innerHTML = '<span class="status-indicator status-error"></span> <span class="error">Error!</span>';
+                    try {
+                        const errorData = await response.json();
+                        resultElement.textContent = JSON.stringify(errorData, null, 2);
+                    } catch (e) {
+                        resultElement.textContent = `HTTP Error: ${response.status} ${response.statusText}`;
+                    }
+                }
+            } catch (error) {
+                statusElement.innerHTML = '<span class="status-indicator status-error"></span> <span class="error">Network Error!</span>';
+                resultElement.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        function showBrowserInfo() {
+            const element = document.getElementById('browser-info');
+            const info = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                cookiesEnabled: navigator.cookieEnabled,
+                windowSize: {
+                    innerWidth: window.innerWidth,
+                    innerHeight: window.innerHeight,
+                    outerWidth: window.outerWidth,
+                    outerHeight: window.outerHeight
+                },
+                screenSize: {
+                    width: screen.width,
+                    height: screen.height,
+                    availWidth: screen.availWidth,
+                    availHeight: screen.availHeight,
+                    colorDepth: screen.colorDepth
+                },
+                url: window.location.href,
+                origin: window.location.origin,
+                host: window.location.host
+            };
+            
+            element.textContent = JSON.stringify(info, null, 2);
+        }
+        
+        async function runNetworkDiagnostics() {
+            const element = document.getElementById('diagnostics-result');
+            element.textContent = 'Running diagnostics...';
+            
+            const results = {
+                timestamp: new Date().toISOString(),
+                tests: {}
+            };
+            
+            // Test health endpoint
+            try {
+                const startTime = performance.now();
+                const healthResponse = await fetch('/health', { method: 'GET' });
+                const endTime = performance.now();
+                
+                results.tests.health = {
+                    endpoint: '/health',
+                    status: healthResponse.status,
+                    ok: healthResponse.ok,
+                    responseTime: Math.round(endTime - startTime),
+                    headers: {}
+                };
+                
+                // Get some important headers
+                healthResponse.headers.forEach((value, key) => {
+                    results.tests.health.headers[key] = value;
+                });
+            } catch (error) {
+                results.tests.health = {
+                    endpoint: '/health',
+                    error: error.message
+                };
+            }
+            
+            // Test API endpoint
+            try {
+                const startTime = performance.now();
+                const apiResponse = await fetch('/api', { method: 'GET' });
+                const endTime = performance.now();
+                
+                results.tests.api = {
+                    endpoint: '/api',
+                    status: apiResponse.status,
+                    ok: apiResponse.ok,
+                    responseTime: Math.round(endTime - startTime),
+                    headers: {}
+                };
+                
+                // Get some important headers
+                apiResponse.headers.forEach((value, key) => {
+                    results.tests.api.headers[key] = value;
+                });
+            } catch (error) {
+                results.tests.api = {
+                    endpoint: '/api',
+                    error: error.message
+                };
+            }
+            
+            element.textContent = JSON.stringify(results, null, 2);
+        }
+        
+        async function testCORS() {
+            const element = document.getElementById('cors-result');
+            element.textContent = 'Testing CORS configuration...';
+            
+            const results = {
+                sameOrigin: {
+                    status: 'Testing...'
+                },
+                preflight: {
+                    status: 'Testing...'
+                }
+            };
+            
+            // Test same origin request
+            try {
+                const response = await fetch('/health', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                results.sameOrigin = {
+                    status: response.status,
+                    ok: response.ok,
+                    corsHeaders: {
+                        'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                        'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                        'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers')
+                    }
+                };
+            } catch (error) {
+                results.sameOrigin = {
+                    status: 'Error',
+                    error: error.message
+                };
+            }
+            
+            // Test preflight check
+            try {
+                const response = await fetch('/health', {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Access-Control-Request-Method': 'GET',
+                        'Access-Control-Request-Headers': 'Content-Type,Accept',
+                        'Origin': window.location.origin
+                    }
+                });
+                
+                results.preflight = {
+                    status: response.status,
+                    ok: response.ok,
+                    corsHeaders: {
+                        'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                        'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                        'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers')
+                    }
+                };
+            } catch (error) {
+                results.preflight = {
+                    status: 'Error',
+                    error: error.message
+                };
+            }
+            
+            element.textContent = JSON.stringify(results, null, 2);
+        }
+    </script>
+</body>
+</html> 

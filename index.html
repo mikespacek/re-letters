@@ -72,6 +72,7 @@
                 <a href="/test.html" class="btn">CSV Processor</a>
                 <a href="/letters.html" class="btn">Letter Templates</a>
                 <a href="/api-test.html" class="btn">API Test</a>
+                <a href="/debug.html" class="btn">Debug Tools</a>
             </div>
         </div>
         
@@ -92,16 +93,40 @@
             resultElement.textContent = 'Checking API health...';
             
             try {
-                const response = await fetch('/health');
+                console.log('Attempting to connect to health endpoint...');
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+                
+                const response = await fetch('/health', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                console.log('Response received:', response.status);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
                 const data = await response.json();
-                resultElement.textContent = JSON.stringify(data, null, 2);
+                console.log('Data received:', data);
+                resultElement.innerHTML = `<div style="color: green">✓ API is healthy</div>
+<pre style="background: #f5f5f5; padding: 10px;">${JSON.stringify(data, null, 2)}</pre>`;
             } catch (error) {
-                resultElement.textContent = 'Error: ' + error.message;
+                console.error('Health check error:', error);
+                resultElement.innerHTML = `<div style="color: red">✗ Cannot connect to API</div>
+<pre style="background: #f5f5f5; padding: 10px;">Error: ${error.message}</pre>
+<div>Please check the Vercel deployment logs for details.</div>`;
             }
         }
+        
+        // Check health on page load
+        document.addEventListener('DOMContentLoaded', checkHealth);
     </script>
 </body>
 </html> 
