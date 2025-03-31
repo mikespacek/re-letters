@@ -1,7 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form, BackgroundTasks, Request, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response, JSONResponse
-import pandas as pd
 import tempfile
 import os
 import uuid
@@ -9,11 +8,12 @@ import shutil
 import logging
 import traceback
 import base64
-from io import BytesIO
+from io import BytesIO, StringIO
 from pathlib import Path
 import csv
 from collections import Counter
 import json
+import datetime
 from typing import Dict, List, Union, Any, Optional
 from pydantic import BaseModel
 
@@ -70,6 +70,9 @@ TEMPLATES_DIR.mkdir(exist_ok=True)
 # Store letter templates in memory for quick access
 LETTER_TEMPLATES = {}
 
+# Store current session information
+CURRENT_SESSION = None
+
 # Load existing templates if they exist
 def load_templates():
     """Load letter templates from the templates directory"""
@@ -109,7 +112,6 @@ def load_default_template():
                 template_id = str(uuid.uuid4())
                 
                 # Add timestamps
-                import datetime
                 now = datetime.datetime.now().isoformat()
                 template_data["created"] = now
                 template_data["updated"] = now
@@ -151,6 +153,125 @@ TEMPLATE_VARIABLES = {
     "{current_month}": "Current month name",
     "{current_year}": "Current year"
 }
+
+# Define CSV helper functions to replace pandas
+def read_csv_file(file_path, delimiter=','):
+    """Read a CSV file and return data as a list of dictionaries"""
+    logger.info(f"Reading CSV with built-in csv module using delimiter: '{delimiter}'")
+    
+    with open(file_path, 'r', newline='', encoding='utf-8') as f:
+        # Try to detect if there's a header
+        sample = f.read(2048)
+        f.seek(0)
+        has_header = csv.Sniffer().has_header(sample)
+        
+        if has_header:
+            reader = csv.DictReader(f, delimiter=delimiter)
+            rows = list(reader)
+            fieldnames = reader.fieldnames
+        else:
+            # Handle files without headers
+            reader = csv.reader(f, delimiter=delimiter)
+            rows_list = list(reader)
+            if rows_list:
+                fieldnames = [f"Column{i+1}" for i in range(len(rows_list[0]))]
+                rows = []
+                for row in rows_list:
+                    rows.append(dict(zip(fieldnames, row)))
+            else:
+                fieldnames = []
+                rows = []
+    
+    logger.debug(f"Read {len(rows)} rows with {len(fieldnames) if fieldnames else 0} columns")
+    return {
+        "rows": rows,
+        "fieldnames": fieldnames,
+        "shape": (len(rows), len(fieldnames) if fieldnames else 0)
+    }
+
+def detect_delimiter(file_path):
+    """Detect the delimiter in a CSV file"""
+    logger.info("Detecting CSV delimiter")
+    
+    with open(file_path, 'r', newline='', encoding='utf-8') as f:
+        sample = f.read(2048)
+    
+    # Count occurrence of common delimiters
+    delimiters = [',', '\t', ';', '|']
+    delimiter_counts = {d: sample.count(d) for d in delimiters}
+    
+    # Get the delimiter with the highest count
+    best_delimiter = max(delimiter_counts, key=delimiter_counts.get)
+    
+    logger.info(f"Detected delimiter: '{best_delimiter}' (counts: {delimiter_counts})")
+    return best_delimiter
+
+def write_csv_file(file_path, data, fieldnames=None):
+    """Write data as a CSV file"""
+    if not fieldnames and data:
+        fieldnames = data[0].keys()
+    
+    with open(file_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(data)
+    
+    logger.info(f"Wrote {len(data)} rows to {file_path}")
+
+def filter_rows(data, filter_type='all'):
+    """Filter rows based on type (owner-occupied, renter, investor)"""
+    logger.info(f"Filtering rows by type: {filter_type}")
+    
+    if filter_type == 'all':
+        return data
+    
+    filtered = []
+    for row in data:
+        if filter_type == 'owner-occupied' and row.get('OccupancyStatus', '').lower() == 'owner-occupied':
+            filtered.append(row)
+        elif filter_type == 'renter' and row.get('OccupancyStatus', '').lower() == 'renter':
+            filtered.append(row)
+        elif filter_type == 'investor' and row.get('OccupancyStatus', '').lower() == 'investor':
+            filtered.append(row)
+    
+    logger.info(f"Filtered to {len(filtered)} rows")
+    return filtered
+
+def clean_data_row(row):
+    """Clean and standardize a row of CSV data"""
+    clean_row = {}
+    
+    for key, value in row.items():
+        # Convert to string if not already
+        if not isinstance(value, str):
+            value = str(value)
+        
+        # Strip whitespace
+        value = value.strip()
+        
+        # Handle ZIP codes - ensure 5 digits with leading zeros
+        if 'zip' in key.lower() or 'postal' in key.lower():
+            if value.isdigit() and len(value) <= 5:
+                value = value.zfill(5)
+        
+        # Handle phone numbers - standardize format
+        if 'phone' in key.lower():
+            value = ''.join(c for c in value if c.isdigit())
+        
+        # Remove dollar signs and commas from price/money fields
+        if any(term in key.lower() for term in ['price', 'cost', 'value', 'sale']):
+            value = value.replace('$', '').replace(',', '')
+        
+        clean_row[key] = value
+    
+    return clean_row
+
+def clean_data_dict(data):
+    """Clean and standardize CSV data as dictionary list"""
+    logger.debug(f"Starting data cleaning for {len(data)} rows")
+    clean_data = [clean_data_row(row) for row in data]
+    logger.debug(f"Data cleaning complete. Rows: {len(clean_data)}")
+    return clean_data
 
 def clean_data(df):
     """
@@ -281,439 +402,157 @@ def fill_empty_names(df):
     
     return processed_df
 
-def detect_delimiter(file_path, sample_lines=10):
-    """
-    Auto-detect the delimiter used in a CSV file by analyzing common delimiters
-    """
-    common_delimiters = [',', '\t', ';', '|']
-    with open(file_path, 'r', newline='', errors='replace') as f:
-        # Read a sample of lines
-        sample = []
-        for _ in range(sample_lines):
-            line = f.readline()
-            if not line:
-                break
-            sample.append(line)
-        
-        if not sample:
-            logger.warning("Empty file, cannot detect delimiter")
-            return ','  # Default to comma
-        
-        # Count occurrences of each delimiter in the sample
-        counts = {}
-        for delimiter in common_delimiters:
-            counts[delimiter] = sum(line.count(delimiter) for line in sample) / len(sample)
-        
-        logger.debug(f"Delimiter counts: {counts}")
-        
-        # Return the delimiter with highest average count
-        most_common = max(counts.items(), key=lambda x: x[1])
-        if most_common[1] == 0:
-            logger.warning("Could not detect any common delimiter, defaulting to comma")
-            return ','
-        
-        logger.info(f"Detected delimiter: '{most_common[0]}' with average count {most_common[1]}")
-        return most_common[0]
-
 @app.post("/upload", response_class=Response)
 async def upload_file(
     file: UploadFile = File(...),
-    output_format: str = Form(...),
-    filter_type: str = Form("all"),
-    delimiter: str = Form(','),
-    background_tasks: BackgroundTasks = None,
+    delimiter: str = Form(","),
+    filter_type: str = Form("all")
 ):
     """
-    Upload a CSV file, process it, and return in the requested format
+    Upload a CSV file for processing
+    
+    This endpoint accepts a CSV file, processes it, and stores it in memory and on disk
+    for later use. It supports filtering by property type.
+    
+    Args:
+        file: The CSV file to upload
+        delimiter: The delimiter used in the CSV file (default: ",")
+        filter_type: Filter for property types: all, owner-occupied, renter, investor (default: "all")
+    
+    Returns:
+        JSON response with processing results or error message
     """
-    logger.info(f"Starting file upload: {file.filename}, format: {output_format}, filter: {filter_type}, delimiter: {delimiter}")
-    
-    if not file.filename.endswith('.csv'):
-        logger.error(f"Invalid file type: {file.filename}")
-        return JSONResponse(
-            status_code=400,
-            content={"detail": "Only CSV files are supported"}
-        )
-    
     try:
-        # Create a unique filename for the processed file
-        file_id = str(uuid.uuid4())
-        input_path = TEMP_DIR / f"{file_id}_input.csv"
+        logger.info(f"Received file upload: {file.filename} with delimiter '{delimiter}' and filter '{filter_type}'")
         
-        logger.info(f"Saving uploaded file to {input_path}")
-        # Save uploaded file
-        with open(input_path, "wb") as buffer:
+        # Create a unique identifier for this processing session
+        session_id = str(uuid.uuid4())
+        
+        # Create a directory for this session
+        session_dir = TEMP_DIR / session_id
+        session_dir.mkdir(exist_ok=True)
+        
+        # Save the uploaded file
+        input_path = session_dir / f"input_{file.filename}"
+        with open(input_path, "wb") as f:
             content = await file.read()
-            logger.debug(f"Read {len(content)} bytes from uploaded file")
-            buffer.write(content)
+            f.write(content)
         
-        # Reset file pointer for future operations
-        await file.seek(0)
+        logger.info(f"Saved uploaded file to {input_path}")
         
-        # Check if file was saved correctly
-        if not input_path.exists():
-            logger.error(f"Failed to save file to {input_path}")
-            return JSONResponse(
-                status_code=500,
-                content={"detail": "Failed to save uploaded file"}
-            )
-            
-        file_size = input_path.stat().st_size
-        logger.debug(f"Saved file size: {file_size} bytes")
-        
-        if file_size == 0:
-            logger.error("Uploaded file is empty")
-            return JSONResponse(
-                status_code=400,
-                content={"detail": "Uploaded file is empty"}
-            )
-        
-        # Auto-detect delimiter if needed, overriding the provided one
-        if delimiter == 'auto':
+        # Auto-detect delimiter if not specified or invalid
+        if not delimiter or delimiter not in [',', '\t', ';', '|']:
             detected_delimiter = detect_delimiter(input_path)
             logger.info(f"Auto-detected delimiter: '{detected_delimiter}'")
             delimiter = detected_delimiter
         
-        # Handle special case for tab
-        if delimiter == '\\t':
-            delimiter = '\t'
-        
-        # Read CSV with pandas - using provided or detected delimiter
-        logger.info(f"Reading CSV with pandas using delimiter: '{delimiter}'")
+        # Read the CSV file
         try:
-            logger.debug(f"Using delimiter: '{delimiter}'")
+            # Read CSV with built-in csv module
+            logger.info(f"Reading CSV using delimiter: '{delimiter}'")
+            csv_data = read_csv_file(input_path, delimiter=delimiter)
+            rows = csv_data["rows"]
+            fieldnames = csv_data["fieldnames"]
+            shape = csv_data["shape"]
             
-            # Read with provided delimiter
-            df = pd.read_csv(input_path, delimiter=delimiter, dtype=str, on_bad_lines='warn')
-            logger.debug(f"Read CSV successfully. Shape: {df.shape}, Columns: {df.columns.tolist()}")
-            
-            # If we only got one column, it might be a malformed CSV, try another approach
-            if len(df.columns) <= 1:
-                logger.warning("CSV appears malformed with only one column, attempting to detect correct delimiter")
-                # Try to detect the correct delimiter
-                best_delimiter = detect_delimiter(input_path)
-                if best_delimiter != delimiter:
-                    logger.info(f"Detected better delimiter: '{best_delimiter}', trying again")
-                    df = pd.read_csv(input_path, delimiter=best_delimiter, dtype=str, on_bad_lines='warn')
-                    logger.debug(f"Re-read CSV with new delimiter. Shape: {df.shape}, Columns: {df.columns.tolist()}")
+            if shape[0] == 0 or shape[1] == 0:
+                raise HTTPException(status_code=400, detail="CSV file appears to be empty or improperly formatted")
                 
-                # If still malformed, try the CSV module approach
-                if len(df.columns) <= 1:
-                    logger.debug("Still malformed, attempting to fix by reading with Python's csv module")
-                    import csv
-                    from io import StringIO
-                    
-                    rows = []
-                    with open(input_path, 'r', newline='', errors='replace') as f:
-                        # Try with the detected delimiter first
-                        reader = csv.reader(f, delimiter=best_delimiter)
-                        for row in reader:
-                            rows.append(row)
-                    
-                    if rows:
-                        # Get max columns from any row
-                        max_cols = max(len(row) for row in rows)
-                        logger.debug(f"Found {max_cols} columns in CSV")
-                        
-                        # Pad rows with empty values if needed
-                        padded_rows = []
-                        for row in rows:
-                            padded_rows.append(row + [''] * (max_cols - len(row)))
-                        
-                        # Convert to DataFrame
-                        header = padded_rows[0]
-                        data = padded_rows[1:]
-                        df = pd.DataFrame(data, columns=header)
-                        logger.debug(f"Created DataFrame from raw CSV. Shape: {df.shape}")
+            logger.info(f"Successfully read CSV with {shape[0]} rows and {shape[1]} columns")
             
         except Exception as e:
-            logger.error(f"Error reading CSV: {str(e)}")
-            logger.error(traceback.format_exc())
-            return JSONResponse(
-                status_code=400,
-                content={"detail": f"Error reading CSV: {str(e)}"}
-            )
-        
-        # Process the data
-        logger.info("Cleaning and processing data")
-        try:
-            cleaned_df = clean_data(df)
-            
-            # Fill empty first and last names from mail owner name
-            logger.info("Filling empty names from mail owner name")
-            cleaned_df = fill_empty_names(cleaned_df)
-            
-            if filter_type != "all":
-                # Apply filter based on filter_type
-                logger.info(f"Applying filter: {filter_type}")
-                
-                # Check if "Owner Occupied" column exists
-                owner_occupied_col = None
-                for col in cleaned_df.columns:
-                    if "owner occupied" in col.lower():
-                        owner_occupied_col = col
-                        logger.debug(f"Found Owner Occupied column: {col}")
-                        break
-                
-                if owner_occupied_col:
-                    # Log unique values in this column to debug
-                    unique_values = cleaned_df[owner_occupied_col].unique()
-                    logger.debug(f"Unique values in {owner_occupied_col}: {unique_values}")
-                    
-                    # Add specific logging for each unique value to help with debugging
-                    for val in unique_values:
-                        val_count = (cleaned_df[owner_occupied_col] == val).sum()
-                        logger.debug(f"Value '{val}' appears {val_count} times")
-                    
-                    # Check for owner name columns
-                    owner_name_cols = []
-                    for col in cleaned_df.columns:
-                        if any(term in col.lower() for term in ["owner first name", "owner last name", "mail owner name"]):
-                            owner_name_cols.append(col)
-                            logger.debug(f"Found owner name column: {col}")
-                    
-                    if filter_type == "owner_occupied":
-                        # Owner occupied = yes filtering logic
-                        logger.debug("Filtering for owner occupied properties")
-                        # [... existing owner_occupied filtering logic ...]
-                        has_positive_values = any(val.upper().strip() in ["Y", "YES", "TRUE", "T", "1", "OWNER", "OCCUPIED"] 
-                                              for val in cleaned_df[owner_occupied_col].fillna('') if isinstance(val, str))
-                        logger.debug(f"Has positive owner occupied values: {has_positive_values}")
-                        
-                        owner_occupied_mask = cleaned_df[owner_occupied_col].str.upper().fillna('').str.strip().isin(["Y", "YES", "TRUE", "T", "1", "OWNER", "OCCUPIED"])
-                        # If no records match our positive value check, assume field has different format
-                        if not owner_occupied_mask.any() and not has_positive_values:
-                            logger.warning("No records match positive values in Owner Occupied column")
-                            # Try a different approach - look for non-empty values in owner name columns
-                            if owner_name_cols:
-                                logger.debug("Trying alternative approach based on owner name values")
-                                # If we have owner name fields populated, this could indicate owner occupied
-                                owner_occupied_mask = cleaned_df[owner_name_cols[0]].notna() & (cleaned_df[owner_name_cols[0]] != '')
-                        
-                        filtered_df = cleaned_df[owner_occupied_mask]
-                        logger.debug(f"Owner occupied filter matched {len(filtered_df)} of {len(cleaned_df)} rows")
-                        
-                    elif filter_type == "renter":
-                        # Renter filtering logic
-                        logger.debug("Filtering for renter properties")
-                        # [... existing renter filtering logic ...]
-                        has_negative_values = any(val.upper().strip() in ["N", "NO", "FALSE", "F", "0", "RENTER"] 
-                                             for val in cleaned_df[owner_occupied_col].fillna('') if isinstance(val, str))
-                        logger.debug(f"Has negative owner occupied values: {has_negative_values}")
-                        
-                        renter_mask = cleaned_df[owner_occupied_col].str.upper().fillna('').str.strip().isin(["N", "NO", "FALSE", "F", "0", "RENTER"])
-                        
-                        # If no records match our negative value check, assume empty means not owner occupied
-                        if not renter_mask.any() and not has_negative_values:
-                            logger.warning("No records match negative values in Owner Occupied column")
-                            renter_mask = cleaned_df[owner_occupied_col].isna() | (cleaned_df[owner_occupied_col] == '')
-                        
-                        filtered_df = cleaned_df[renter_mask].copy()
-                        
-                        # Replace owner name fields with "Current Renter"
-                        for col in owner_name_cols:
-                            logger.debug(f"Replacing values in {col} with 'Current Renter'")
-                            filtered_df[col] = "Current Renter"
-                            
-                        logger.debug(f"Renter filter matched {len(filtered_df)} of {len(cleaned_df)} rows")
-                        
-                    elif filter_type == "investor":
-                        # Investor filtering logic
-                        logger.debug("Filtering for investor properties")
-                        # [... existing investor filtering logic ...]
-                        investor_mask = cleaned_df[owner_occupied_col].str.upper().fillna('').str.strip().isin(["N", "NO", "FALSE", "F", "0", "RENTER"])
-                        
-                        # If no explicit negative values, consider empty values as not owner occupied
-                        if not investor_mask.any():
-                            logger.warning("No explicit negative values found, checking for empty/NA values")
-                            investor_mask = cleaned_df[owner_occupied_col].isna() | (cleaned_df[owner_occupied_col] == '')
-                            
-                        # Additional check: empty values only count as investor if we have owner name data
-                        if owner_name_cols:
-                            has_owner_data = False
-                            for col in owner_name_cols:
-                                if cleaned_df[col].notna().any():
-                                    has_owner_data = True
-                                    break
-                            
-                            if has_owner_data:
-                                logger.debug("Using owner name data to determine investor properties")
-                                non_empty_owner = cleaned_df[owner_name_cols[0]].notna() & (cleaned_df[owner_name_cols[0]] != '')
-                                investor_mask = investor_mask & non_empty_owner
-                        
-                        filtered_df = cleaned_df[investor_mask].copy()
-                        
-                        # For investor properties, replace empty first and last names with "Current Owner"
-                        first_name_col = None
-                        last_name_col = None
-                        
-                        for col in filtered_df.columns:
-                            col_lower = col.lower()
-                            if 'first name' in col_lower:
-                                first_name_col = col
-                                logger.debug(f"Found first name column for investor replacement: {col}")
-                            elif 'last name' in col_lower:
-                                last_name_col = col
-                                logger.debug(f"Found last name column for investor replacement: {col}")
-                        
-                        if first_name_col and last_name_col:
-                            # Count empty fields before replacement
-                            empty_first_names = filtered_df[first_name_col].isna().sum() + (filtered_df[first_name_col] == '').sum()
-                            empty_last_names = filtered_df[last_name_col].isna().sum() + (filtered_df[last_name_col] == '').sum()
-                            
-                            logger.debug(f"Investor filter: Found {empty_first_names} empty first names and {empty_last_names} empty last names")
-                            
-                            # Replace empty first names with "Current Owner"
-                            filtered_df.loc[filtered_df[first_name_col].isna() | (filtered_df[first_name_col] == ''), first_name_col] = "Current Owner"
-                            
-                            # Replace empty last names with "Current Owner"
-                            filtered_df.loc[filtered_df[last_name_col].isna() | (filtered_df[last_name_col] == ''), last_name_col] = "Current Owner"
-                            
-                            logger.debug(f"Investor filter: Replaced empty names with 'Current Owner'")
-                        
-                        logger.debug(f"Investor filter matched {len(filtered_df)} of {len(cleaned_df)} rows")
-                    else:
-                        filtered_df = cleaned_df  # Default to all data
-                else:
-                    logger.warning(f"Could not find 'Owner Occupied' column, using all data")
-                    logger.debug(f"Available columns: {cleaned_df.columns.tolist()}")
-                    filtered_df = cleaned_df
-                
-                # If filtered DataFrame is empty, return error
-                if filtered_df.empty:
-                    logger.warning("Filtered data is empty")
-                    return JSONResponse(
-                        status_code=400,
-                        content={"detail": f"No data found for filter type: {filter_type}"}
-                    )
-                    
-                # Use filtered DataFrame for output
-                processed_df = filtered_df
-            else:
-                # No filtering required, use all data
-                processed_df = cleaned_df
-                
-            logger.debug(f"After filtering: {processed_df.shape}")
-            
-            # Output filename base
-            output_filename = f"{file.filename.split('.')[0]}_processed"
-            
-            # Prepare output based on requested format and mode
-            logger.info(f"Preparing output in {output_format} format")
+            # If failed with specified delimiter, try auto-detection
+            logger.warning(f"Failed to read CSV with delimiter '{delimiter}': {str(e)}")
             
             try:
-                # Process with multiple sheets for both Excel and CSV
-                # Using the same function for consistent output between formats
-                sheet_dfs = process_excel_style(processed_df)
+                best_delimiter = detect_delimiter(input_path)
+                logger.info(f"Auto-detected delimiter: '{best_delimiter}'")
                 
-                if output_format == "excel":
-                    # Create Excel file with multiple sheets
-                    logger.info(f"Creating Excel file with {len(sheet_dfs)} sheets")
-                    
-                    # Create a BytesIO buffer to hold the Excel data
-                    buffer = BytesIO()
-                    
-                    with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-                        # Add each sheet to the Excel file
-                        for sheet_name, sheet_df in sheet_dfs.items():
-                            sheet_df.to_excel(writer, sheet_name=sheet_name, index=False)
-                            
-                            # Get xlsxwriter workbook and worksheet objects
-                            workbook = writer.book
-                            worksheet = writer.sheets[sheet_name]
-                            
-                            # Add table formatting
-                            table_style = 'Table Style Light 1'
-                            if len(sheet_df) > 0:
-                                # Create a table with the data
-                                worksheet.add_table(0, 0, len(sheet_df), len(sheet_df.columns) - 1, 
-                                                 {'name': sheet_name.replace(' ', '_'), 
-                                                  'style': table_style})
-                    
-                    # Get the buffer value
-                    buffer.seek(0)
-                    processed_data = buffer.getvalue()
-                    media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    download_filename = f"{output_filename}.xlsx"
-                    
-                elif output_format == "csv":
-                    # Create a single CSV file with all sheets separated by section headers
-                    logger.info(f"Creating single CSV file with {len(sheet_dfs)} sections")
-                    
-                    # Create a BytesIO buffer to hold the CSV data
-                    buffer = BytesIO()
-                    
-                    # Create a single CSV with sections for each sheet
-                    first_sheet = True
-                    for sheet_name, sheet_df in sheet_dfs.items():
-                        # Add section header (except for first section)
-                        if not first_sheet:
-                            buffer.write(f"\n\n\n".encode('utf-8'))
-                        
-                        # Add section header
-                        buffer.write(f"### {sheet_name} ###\n".encode('utf-8'))
-                        
-                        # Add the dataframe as CSV
-                        csv_data = sheet_df.to_csv(index=False)
-                        buffer.write(csv_data.encode('utf-8'))
-                        
-                        first_sheet = False
-                    
-                    # Get the buffer value
-                    buffer.seek(0)
-                    processed_data = buffer.getvalue()
-                    media_type = "text/csv"
-                    download_filename = f"{output_filename}.csv"
-                    
-                else:
-                    logger.error(f"Unsupported output format: {output_format}")
-                    return JSONResponse(
-                        status_code=400,
-                        content={"detail": "Unsupported output format"}
-                    )
+                # Try again with detected delimiter
+                csv_data = read_csv_file(input_path, delimiter=best_delimiter)
+                rows = csv_data["rows"]
+                fieldnames = csv_data["fieldnames"]
+                shape = csv_data["shape"]
                 
-                logger.debug(f"Generated file size: {len(processed_data)} bytes")
+                logger.info(f"Successfully read CSV with auto-detected delimiter '{best_delimiter}'")
                 
-                # Cleanup input file
-                if background_tasks:
-                    logger.info("Adding cleanup background task")
-                    background_tasks.add_task(cleanup_temp_file, [input_path])
-                    
-                # Return the response with the correct headers
-                logger.info(f"Returning processed file: {download_filename}")
-                headers = {
-                    'Content-Disposition': f'attachment; filename="{download_filename}"',
-                    'Content-Type': media_type,
-                }
-                
-                return Response(
-                    content=processed_data,
-                    headers=headers,
-                )
-                
-            except Exception as e:
-                logger.error(f"Error preparing output: {str(e)}")
-                logger.error(traceback.format_exc())
-                return JSONResponse(
-                    status_code=500,
-                    content={"detail": f"Error preparing output: {str(e)}"}
-                )
-            
-        except Exception as e:
-            logger.error(f"Error cleaning or filtering data: {str(e)}")
-            logger.error(traceback.format_exc())
-            return JSONResponse(
-                status_code=500,
-                content={"detail": f"Error processing data: {str(e)}"}
-            )
+            except Exception as nested_e:
+                error_msg = f"Failed to parse CSV file: {str(nested_e)}"
+                logger.error(error_msg)
+                raise HTTPException(status_code=400, detail=error_msg)
         
-    except Exception as e:
-        logger.error(f"Unexpected error processing file: {str(e)}")
-        logger.error(traceback.format_exc())
+        # Check for required columns (for filtering)
+        required_columns = ['OccupancyStatus']
+        missing_columns = [col for col in required_columns if col not in fieldnames]
+        
+        if missing_columns and filter_type != 'all':
+            # If filtering is requested but required columns are missing
+            warning_msg = f"Missing columns for filtering: {', '.join(missing_columns)}. Filtering will not be applied."
+            logger.warning(warning_msg)
+            # Continue without filtering
+        
+        # Clean and standardize the data
+        clean_rows = clean_data_dict(rows)
+        
+        # Apply filtering if requested and possible
+        if filter_type != 'all' and not missing_columns:
+            filtered_rows = filter_rows(clean_rows, filter_type)
+            if not filtered_rows:
+                warning_msg = f"No rows match the filter criteria: {filter_type}"
+                logger.warning(warning_msg)
+                # Continue with empty result
+            rows_count = len(filtered_rows)
+        else:
+            filtered_rows = clean_rows
+            rows_count = len(filtered_rows)
+        
+        # Save processed data
+        processed_path = session_dir / "processed.csv"
+        write_csv_file(processed_path, filtered_rows, fieldnames)
+        
+        # Save session info
+        session_info = {
+            "id": session_id,
+            "original_filename": file.filename,
+            "processed_path": str(processed_path),
+            "filter_type": filter_type,
+            "delimiter": delimiter,
+            "rows": rows_count,
+            "columns": len(fieldnames),
+            "timestamp": datetime.datetime.now().isoformat(),
+            "fieldnames": fieldnames,
+        }
+        
+        # Save session info to disk
+        with open(session_dir / "info.json", "w") as f:
+            json.dump(session_info, f, indent=2)
+        
+        # Store the session info in memory (for this server instance)
+        global CURRENT_SESSION
+        CURRENT_SESSION = session_info
+        
+        logger.info(f"Successfully processed file. Session ID: {session_id}")
+        
         return JSONResponse(
-            status_code=500,
-            content={"detail": f"Unexpected error: {str(e)}"}
+            status_code=200,
+            content={
+                "message": "File processed successfully",
+                "session_id": session_id,
+                "rows": rows_count,
+                "columns": len(fieldnames),
+                "filter_type": filter_type
+            }
         )
+    
+    except HTTPException:
+        # Re-raise HTTP exceptions without modifying them
+        raise
+    
+    except Exception as e:
+        error_msg = f"Error processing file: {str(e)}"
+        logger.error(error_msg)
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=error_msg)
 
 def cleanup_temp_file(files):
     """Delete temporary files after processing"""
@@ -882,174 +721,114 @@ def process_excel_style(df):
 @app.post("/process_excel_style")
 async def process_excel_style_endpoint(
     file: UploadFile = File(...),
-    output_format: str = Form(...),
     delimiter: str = Form(','),
-    background_tasks: BackgroundTasks = None,
+    filter_type: str = Form("all")
 ):
     """
-    Process a CSV file using Excel-style formatting and return multiple sheets in Excel format or ZIP of CSVs
+    Process CSV in Excel style with multiple sections
+    
+    This endpoint processes a CSV file and creates a downloadable Excel-like format
+    with multiple sections based on the data. It supports filtering by property type.
+    Since we removed pandas and Excel functionality, this will just produce a CSV
+    with different sections.
+    
+    Args:
+        file: The CSV file to upload
+        delimiter: The delimiter used in the CSV file (default: ",")
+        filter_type: Filter for property types: all, owner-occupied, renter, investor (default: "all")
+    
+    Returns:
+        CSV file with sections for different property types
     """
-    logger.info(f"Starting Excel-style processing: {file.filename}, format: {output_format}, delimiter: {delimiter}")
-    
-    if not file.filename.endswith('.csv'):
-        logger.error(f"Invalid file type: {file.filename}")
-        return JSONResponse(
-            status_code=400,
-            content={"detail": "Only CSV files are supported"}
-        )
-    
     try:
-        # Create a unique filename for the processed file
-        file_id = str(uuid.uuid4())
-        input_path = TEMP_DIR / f"{file_id}_input.csv"
+        logger.info(f"Received Excel-style processing request for file: {file.filename}")
         
-        logger.info(f"Saving uploaded file to {input_path}")
-        # Save uploaded file
-        with open(input_path, "wb") as buffer:
+        # Create a unique identifier for this processing session
+        session_id = str(uuid.uuid4())
+        
+        # Create a directory for this session
+        session_dir = TEMP_DIR / session_id
+        session_dir.mkdir(exist_ok=True)
+        
+        # Save the uploaded file
+        input_path = session_dir / f"input_{file.filename}"
+        with open(input_path, "wb") as f:
             content = await file.read()
-            logger.debug(f"Read {len(content)} bytes from uploaded file")
-            buffer.write(content)
+            f.write(content)
         
-        # Reset file pointer for future operations
-        await file.seek(0)
+        logger.info(f"Saved uploaded file to {input_path}")
         
-        # Check if file was saved correctly
-        if not input_path.exists():
-            logger.error(f"Failed to save file to {input_path}")
-            return JSONResponse(
-                status_code=500,
-                content={"detail": "Failed to save uploaded file"}
-            )
-        
-        # Auto-detect delimiter if needed
-        if delimiter == 'auto':
+        # Auto-detect delimiter if not specified or invalid
+        if not delimiter or delimiter not in [',', '\t', ';', '|']:
             detected_delimiter = detect_delimiter(input_path)
             logger.info(f"Auto-detected delimiter: '{detected_delimiter}'")
             delimiter = detected_delimiter
         
-        # Handle special case for tab
-        if delimiter == '\\t':
-            delimiter = '\t'
+        # Read the CSV file
+        csv_data = read_csv_file(input_path, delimiter=delimiter)
+        rows = csv_data["rows"]
+        fieldnames = csv_data["fieldnames"]
         
-        # Read CSV with pandas
-        logger.info(f"Reading CSV with pandas using delimiter: '{delimiter}'")
-        try:
-            df = pd.read_csv(input_path, delimiter=delimiter, dtype=str, on_bad_lines='warn')
-            logger.debug(f"Read CSV successfully. Shape: {df.shape}, Columns: {df.columns.tolist()}")
-        except Exception as e:
-            logger.error(f"Error reading CSV: {str(e)}")
-            logger.error(traceback.format_exc())
-            return JSONResponse(
-                status_code=400,
-                content={"detail": f"Error reading CSV: {str(e)}"}
-            )
+        if not rows:
+            raise HTTPException(status_code=400, detail="CSV file appears to be empty or improperly formatted")
         
-        # Clean data
-        cleaned_df = clean_data(df)
+        # Clean and standardize the data
+        clean_rows = clean_data_dict(rows)
         
-        # Fill empty names
-        cleaned_df = fill_empty_names(cleaned_df)
+        # Split data into property types
+        types = ["owner-occupied", "renter", "investor", "unknown"]
+        type_rows = {t: [] for t in types}
         
-        # Process data using Excel-style formatting
-        sheet_dfs = process_excel_style(cleaned_df)
-        
-        # Base output filename
-        output_filename = f"{file.filename.split('.')[0]}_processed"
-        
-        logger.info(f"Creating output with {len(sheet_dfs)} sheets: {', '.join(sheet_dfs.keys())}")
-        
-        # Process based on requested format
-        if output_format == "excel":
-            # Create Excel file with multiple sheets
-            logger.info("Creating Excel file with multiple sheets")
+        # Determine property type for each row
+        for row in clean_rows:
+            occupancy = row.get("OccupancyStatus", "").lower()
             
-            # Create a BytesIO buffer to hold the Excel data
-            buffer = BytesIO()
+            if occupancy == "owner-occupied":
+                type_rows["owner-occupied"].append(row)
+            elif occupancy == "renter":
+                type_rows["renter"].append(row)
+            elif occupancy == "investor":
+                type_rows["investor"].append(row)
+            else:
+                type_rows["unknown"].append(row)
+        
+        # Create a combined CSV with sections
+        output_path = session_dir / "excel_style.csv"
+        with open(output_path, "w", newline="", encoding="utf-8") as f:
+            writer = None
             
-            with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
-                # Add each sheet to the Excel file
-                for sheet_name, sheet_df in sheet_dfs.items():
-                    sheet_df.to_excel(writer, sheet_name=sheet_name, index=False)
+            # Add each section with a header
+            for section_type, section_rows in type_rows.items():
+                if section_rows:
+                    f.write(f"### {section_type.upper()} PROPERTIES (Count: {len(section_rows)}) ###\n")
                     
-                    # Get xlsxwriter workbook and worksheet objects
-                    workbook = writer.book
-                    worksheet = writer.sheets[sheet_name]
+                    # Create a CSV writer for this section
+                    writer = csv.DictWriter(f, fieldnames=fieldnames)
+                    writer.writeheader()
+                    writer.writerows(section_rows)
                     
-                    # Add table formatting
-                    table_style = 'Table Style Light 1'
-                    if len(sheet_df) > 0:
-                        # Create a table with the data
-                        worksheet.add_table(0, 0, len(sheet_df), len(sheet_df.columns) - 1, 
-                                          {'name': sheet_name.replace(' ', '_'), 
-                                          'style': table_style})
-            
-            # Get the buffer value
-            buffer.seek(0)
-            processed_data = buffer.getvalue()
-            media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            download_filename = f"{output_filename}.xlsx"
+                    # Add a spacer between sections
+                    f.write("\n\n")
         
-        elif output_format == "csv":
-            # Create a single CSV file with all sheets separated by section headers
-            logger.info("Creating single CSV file with sections for each sheet")
-            
-            # Create a BytesIO buffer to hold the CSV data
-            buffer = BytesIO()
-            
-            # Create a single CSV with sections for each sheet
-            first_sheet = True
-            for sheet_name, sheet_df in sheet_dfs.items():
-                # Add section header (except for first section)
-                if not first_sheet:
-                    buffer.write(f"\n\n\n".encode('utf-8'))
-                
-                # Add section header
-                buffer.write(f"### {sheet_name} ###\n".encode('utf-8'))
-                
-                # Add the dataframe as CSV
-                csv_data = sheet_df.to_csv(index=False)
-                buffer.write(csv_data.encode('utf-8'))
-                
-                first_sheet = False
-            
-            # Get the buffer value
-            buffer.seek(0)
-            processed_data = buffer.getvalue()
-            media_type = "text/csv"
-            download_filename = f"{output_filename}.csv"
+        logger.info(f"Created Excel-style CSV with {sum(len(rows) for rows in type_rows.values())} total rows")
         
-        else:
-            logger.error(f"Unsupported output format: {output_format}")
-            return JSONResponse(
-                status_code=400,
-                content={"detail": "Unsupported output format"}
-            )
-        
-        logger.debug(f"Generated file size: {len(processed_data)} bytes")
-        
-        # Cleanup input file
-        if background_tasks:
-            background_tasks.add_task(cleanup_temp_file, [input_path])
-        
-        # Return the response with the correct headers
-        headers = {
-            'Content-Disposition': f'attachment; filename="{download_filename}"',
-            'Content-Type': media_type,
-        }
-        
-        logger.info(f"Returning processed file: {download_filename}")
-        return Response(
-            content=processed_data,
-            headers=headers,
+        # Return the file for download
+        filename = f"excel_style_{file.filename}"
+        return FileResponse(
+            path=output_path,
+            filename=filename,
+            media_type="text/csv"
         )
-        
+    
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    
     except Exception as e:
-        logger.error(f"Unexpected error processing file for Excel style: {str(e)}")
+        error_msg = f"Error processing file in Excel style: {str(e)}"
+        logger.error(error_msg)
         logger.error(traceback.format_exc())
-        return JSONResponse(
-            status_code=500,
-            content={"detail": f"Unexpected error: {str(e)}"}
-        )
+        raise HTTPException(status_code=500, detail=error_msg)
 
 @app.get("/templates", response_model=List[TemplateResponse])
 async def list_templates():
@@ -1102,7 +881,6 @@ async def create_template(template: TemplateCreate):
         template_dict = template.dict()
         
         # Add timestamps
-        import datetime
         now = datetime.datetime.now().isoformat()
         template_dict["created"] = now
         template_dict["updated"] = now
@@ -1140,8 +918,8 @@ async def update_template(template_id: str, template: TemplateUpdate):
         template_dict = template.dict()
         
         # Update timestamp
-        import datetime
-        template_dict["updated"] = datetime.datetime.now().isoformat()
+        now = datetime.datetime.now().isoformat()
+        template_dict["updated"] = now
         # Preserve creation date
         template_dict["created"] = LETTER_TEMPLATES[template_id].get("created", template_dict["updated"])
         
@@ -1386,7 +1164,6 @@ async def generate_letters(
         
         # Generate letters for each record
         letters = []
-        import datetime
         current_date = datetime.datetime.now().strftime("%m/%d/%Y")
         current_month = datetime.datetime.now().strftime("%B")
         current_year = datetime.datetime.now().strftime("%Y")
@@ -1591,6 +1368,51 @@ async def test_endpoint():
     """Test API endpoint"""
     logger.info("Test endpoint called")
     return {"status": "ok", "message": "API is working"}
+
+@app.post("/download")
+async def download_processed_csv():
+    """
+    Download the processed CSV file
+    
+    This endpoint returns the processed CSV file from the most recent session.
+    
+    Returns:
+        CSV file response
+    """
+    try:
+        logger.info("Received download request for processed data")
+        
+        # Check if we have a current session
+        if not CURRENT_SESSION:
+            logger.error("No current session found for download")
+            raise HTTPException(status_code=400, detail="No processed data available. Please upload a CSV file first.")
+        
+        # Get the processed file path from the current session
+        processed_path = Path(CURRENT_SESSION["processed_path"])
+        
+        if not processed_path.exists():
+            logger.error(f"Processed file not found: {processed_path}")
+            raise HTTPException(status_code=404, detail="Processed file not found. Please try uploading again.")
+        
+        # Set the content disposition header for download
+        filename = f"processed_{CURRENT_SESSION.get('original_filename', 'data.csv')}"
+        logger.info(f"Returning processed file: {filename}")
+        
+        return FileResponse(
+            path=processed_path,
+            filename=filename,
+            media_type="text/csv"
+        )
+    
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    
+    except Exception as e:
+        error_msg = f"Error downloading file: {str(e)}"
+        logger.error(error_msg)
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=error_msg)
 
 if __name__ == "__main__":
     import uvicorn
