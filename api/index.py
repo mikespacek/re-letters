@@ -1,46 +1,64 @@
-try:
-    from fastapi import FastAPI, Request
-    from fastapi.responses import JSONResponse
-    import sys
-    import os
-    
-    # Try to import from main, but provide fallback if it fails
-    try:
-        from main import app
-        print("Successfully imported app from main.py")
-    except Exception as e:
-        print(f"Error importing from main.py: {str(e)}")
-        # Create a fallback app if main import fails
-        app = FastAPI()
-        
-        @app.get("/health")
-        async def health_check():
-            """Health check endpoint that works even if main.py fails"""
-            return {"status": "ok", "message": "Fallback health check"}
-        
-        @app.get("/test")
-        async def test_endpoint():
-            """Test endpoint that works even if main.py fails"""
-            return {"status": "ok", "message": "Fallback test endpoint"}
-    
-    # Add error handlers
-    @app.exception_handler(Exception)
-    async def generic_exception_handler(request: Request, exc: Exception):
-        return JSONResponse(
-            status_code=500,
-            content={"detail": str(exc), "type": str(type(exc).__name__)},
-        )
-    
-    # Make handler available for Vercel serverless
-    handler = app
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+import sys
+import os
 
-except Exception as e:
-    # Last resort handler if everything fails
-    from fastapi import FastAPI
-    app = FastAPI()
-    
-    @app.get("/health")
-    async def emergency_health():
-        return {"status": "error", "message": f"Emergency fallback activated. Error: {str(e)}"}
-    
-    handler = app 
+# Create a simplified app
+app = FastAPI()
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for testing
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {
+        "message": "RE Letters API is running",
+        "version": "1.0.0",
+        "endpoints": [
+            "/health",
+            "/test",
+            "/templates",
+            "/upload",
+            "/download"
+        ]
+    }
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "ok", "message": "API is healthy"}
+
+@app.get("/test")
+async def test_endpoint():
+    """Test endpoint"""
+    return {"status": "ok", "message": "Test endpoint is working"}
+
+@app.get("/api-info")
+async def api_info():
+    """Returns information about the API environment"""
+    return {
+        "python_version": sys.version,
+        "environment": {k: v for k, v in os.environ.items() if not k.startswith("AWS_")},
+        "directory": os.getcwd(),
+        "files": os.listdir(),
+        "api_directory": os.listdir("api") if os.path.exists("api") else "Not found"
+    }
+
+# Add error handler
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc), "type": str(type(exc).__name__)},
+    )
+
+# Export the handler for Vercel
+handler = app 

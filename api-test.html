@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RE Letters API Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #f4f7f9;
+        }
+        header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e5ea;
+            padding-bottom: 15px;
+        }
+        h1 {
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+            margin-top: 0;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .endpoint-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+        .endpoint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .endpoint-path {
+            font-family: monospace;
+            font-size: 1.1rem;
+            background-color: #edf2f7;
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        .method {
+            display: inline-block;
+            padding: 3px 8px;
+            margin-right: 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: white;
+            background-color: #4299e1;
+        }
+        button {
+            background-color: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #3182ce;
+        }
+        pre {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            overflow: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        .status {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        .success {
+            color: #48bb78;
+        }
+        .error {
+            color: #e53e3e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>RE Letters API Test</h1>
+            <p class="subtitle">Test and verify API endpoints for your application</p>
+        </header>
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <div>
+                    <span class="method">GET</span>
+                    <span class="endpoint-path">/</span>
+                </div>
+                <button onclick="testEndpoint('/')">Test Root Endpoint</button>
+            </div>
+            <div class="status" id="root-status"></div>
+            <pre id="root-result">Click the button to test...</pre>
+        </div>
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <div>
+                    <span class="method">GET</span>
+                    <span class="endpoint-path">/health</span>
+                </div>
+                <button onclick="testEndpoint('/health')">Test Health Endpoint</button>
+            </div>
+            <div class="status" id="health-status"></div>
+            <pre id="health-result">Click the button to test...</pre>
+        </div>
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <div>
+                    <span class="method">GET</span>
+                    <span class="endpoint-path">/test</span>
+                </div>
+                <button onclick="testEndpoint('/test')">Test Test Endpoint</button>
+            </div>
+            <div class="status" id="test-status"></div>
+            <pre id="test-result">Click the button to test...</pre>
+        </div>
+
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <div>
+                    <span class="method">GET</span>
+                    <span class="endpoint-path">/api-info</span>
+                </div>
+                <button onclick="testEndpoint('/api-info')">Test API Info Endpoint</button>
+            </div>
+            <div class="status" id="api-info-status"></div>
+            <pre id="api-info-result">Click the button to test...</pre>
+        </div>
+        
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <div>
+                    <span class="method">GET</span>
+                    <span class="endpoint-path">/api</span>
+                </div>
+                <button onclick="testEndpoint('/api')">Test API Endpoint</button>
+            </div>
+            <div class="status" id="api-status"></div>
+            <pre id="api-result">Click the button to test...</pre>
+        </div>
+    </div>
+
+    <script>
+        async function testEndpoint(endpoint) {
+            const idBase = endpoint.replace(/\//g, '') || 'root';
+            const statusElement = document.getElementById(`${idBase}-status`);
+            const resultElement = document.getElementById(`${idBase}-result`);
+            
+            // Clear previous results
+            statusElement.innerHTML = 'Testing...';
+            statusElement.className = 'status';
+            resultElement.textContent = 'Fetching data...';
+            
+            try {
+                const startTime = new Date().getTime();
+                const response = await fetch(endpoint);
+                const endTime = new Date().getTime();
+                const responseTime = endTime - startTime;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusElement.innerHTML = `Success! <span>(Status: ${response.status}, Response time: ${responseTime}ms)</span>`;
+                    statusElement.className = 'status success';
+                    resultElement.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    statusElement.innerHTML = `Error! <span>(Status: ${response.status}, Response time: ${responseTime}ms)</span>`;
+                    statusElement.className = 'status error';
+                    
+                    try {
+                        const errorData = await response.json();
+                        resultElement.textContent = JSON.stringify(errorData, null, 2);
+                    } catch (e) {
+                        resultElement.textContent = `HTTP Error: ${response.status} ${response.statusText}`;
+                    }
+                }
+            } catch (error) {
+                statusElement.innerHTML = `Network Error!`;
+                statusElement.className = 'status error';
+                resultElement.textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html> 
