@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vercel Deployment Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #0070f3;
+        }
+        .card {
+            padding: 20px;
+            border: 1px solid #eaeaea;
+            border-radius: 10px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+        }
+        button {
+            background-color: #0070f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        pre {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vercel Deployment Test</h1>
+    
+    <div class="card">
+        <h2>Static File Test</h2>
+        <p>If you can see this page, static file serving is working correctly!</p>
+    </div>
+    
+    <div class="card">
+        <h2>API Test</h2>
+        <button onclick="testMinimalApi()">Test Minimal API</button>
+        <pre id="minimalResult">Click the button to test...</pre>
+        
+        <button onclick="testDebugApi()">Test Debug API</button>
+        <pre id="debugResult">Click the button to test...</pre>
+        
+        <button onclick="testHealthApi()">Test Health API</button>
+        <pre id="healthResult">Click the button to test...</pre>
+    </div>
+    
+    <script>
+        async function testMinimalApi() {
+            const resultElement = document.getElementById('minimalResult');
+            resultElement.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch('/api/minimal');
+                const data = await response.json();
+                resultElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultElement.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        async function testDebugApi() {
+            const resultElement = document.getElementById('debugResult');
+            resultElement.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch('/api/debug');
+                const data = await response.json();
+                resultElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultElement.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        async function testHealthApi() {
+            const resultElement = document.getElementById('healthResult');
+            resultElement.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                resultElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultElement.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html> 
